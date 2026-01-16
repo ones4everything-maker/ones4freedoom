@@ -8,14 +8,14 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   return (
-    <div className="group relative bg-surface/40 border border-white/5 hover:border-accent/50 rounded-lg overflow-hidden backdrop-blur-sm transition-all duration-500 hover:-translate-y-2">
+    <div className="group relative bg-surface/40 border border-white/5 hover:border-accent/40 rounded-lg overflow-hidden backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_0_30px_rgba(0,180,255,0.15)]">
       {/* Image Container */}
       <div className="aspect-square relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent z-10 opacity-60"></div>
         <img 
           src={product.images[0]?.src} 
           alt={product.images[0]?.alt}
-          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out"
+          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-[1200ms] ease-in-out"
         />
         
         {/* Floating Tag */}
@@ -59,8 +59,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </div>
       </div>
 
-      {/* Glow Effect */}
-      <div className="absolute inset-0 border-2 border-accent/0 group-hover:border-accent/20 rounded-lg pointer-events-none transition-colors duration-500"></div>
+      {/* Glow Effect - Enhanced */}
+      <div className="absolute inset-0 border-2 border-accent/0 group-hover:border-accent/50 rounded-lg pointer-events-none transition-all duration-500"></div>
     </div>
   );
 };

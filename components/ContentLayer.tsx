@@ -24,12 +24,12 @@ const SectionContent: React.FC<{ section: SectionConfig; isActive: boolean }> = 
     }
   }, [isActive, section.categorySlug, products.length, loading]);
 
-  // Determine opacity based on active state (simple fade)
-  const opacityClass = isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none';
+  // Determine opacity based on active state (simple fade with slight blur and lift)
+  const opacityClass = isActive ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-12 blur-sm pointer-events-none';
 
   return (
     <div 
-      className={`absolute inset-0 flex flex-col items-center justify-center transition-all duration-1000 ease-in-out ${opacityClass}`}
+      className={`absolute inset-0 flex flex-col items-center justify-center transition-all duration-[1500ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${opacityClass}`}
       style={{ zIndex: 10 }}
     >
       <div className="max-w-7xl w-full px-4 md:px-8 pt-20">
@@ -73,12 +73,28 @@ export const ContentLayer: React.FC<ContentLayerProps> = ({ scrollY }) => {
   // Current virtual depth based on scroll
   const currentDepth = -scrollY * SCROLL_TO_DEPTH_RATIO;
 
+  // Find the next approaching section (deeper than current depth + buffer)
+  // SECTIONS are typically ordered 0, -40, -80...
+  const nextSection = SECTIONS.find(s => s.depth < currentDepth - 10);
+  
+  // Also find if we are currently "in" a section
+  const activeSection = SECTIONS.find(s => Math.abs(currentDepth - s.depth) < 20);
+
   return (
     <div className="fixed inset-0 pointer-events-none">
-      {/* Scroll Indicators */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-50 animate-bounce opacity-50">
-        <span className="text-[10px] uppercase tracking-widest text-white">Scroll to Explore</span>
-        <ArrowDown size={16} className="text-accent" />
+      {/* Scroll Indicators - Enhanced */}
+      <div 
+        className={`fixed bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-50 transition-all duration-500 ${nextSection || activeSection ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+      >
+        <div className="flex flex-col items-center gap-1">
+            <span className="text-[9px] text-gray-400 uppercase tracking-[0.2em]">
+                {activeSection ? 'Signal Established' : 'Approaching'}
+            </span>
+            <span className="text-xs uppercase tracking-widest text-accent font-bold drop-shadow-md">
+                {activeSection ? activeSection.title : (nextSection?.title || 'Unknown Sector')}
+            </span>
+        </div>
+        <ArrowDown size={16} className={`text-white animate-bounce ${activeSection ? 'opacity-50' : 'opacity-100'}`} />
       </div>
 
       {/* Depth Gauge (Sticky Sidebar) */}
@@ -90,7 +106,7 @@ export const ContentLayer: React.FC<ContentLayerProps> = ({ scrollY }) => {
             
             return (
                 <div key={s.id} className="flex items-center gap-4 transition-all duration-300">
-                    <div className={`h-16 w-[2px] transition-colors duration-300 ${isNear ? 'bg-accent' : 'bg-white/10'}`}></div>
+                    <div className={`h-16 w-[2px] transition-colors duration-300 ${isNear ? 'bg-accent shadow-[0_0_10px_#00b4ff]' : 'bg-white/10'}`}></div>
                     <div className={`text-xs uppercase tracking-widest transition-all duration-300 ${isNear ? 'text-white translate-x-0 opacity-100' : '-translate-x-4 opacity-0'}`}>
                         {s.title}
                     </div>
