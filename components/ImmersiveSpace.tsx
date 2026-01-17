@@ -9,13 +9,14 @@ interface ImmersiveSpaceProps {
   scrollY: number;
 }
 
-// Generates a starfield
+// Generates a starfield - Reduced count for mobile performance
 function Stars(props: any) {
   const ref = useRef<THREE.Points>(null!);
   const [sphere] = React.useState(() => {
-    const coords = new Float32Array(5000 * 3);
-    for (let i = 0; i < 5000; i++) {
-        const r = 200 * Math.cbrt(Math.random()); // distribute evenly in sphere
+    // Reduced from 5000 to 2500 for better mobile performance
+    const coords = new Float32Array(2500 * 3);
+    for (let i = 0; i < 2500; i++) {
+        const r = 200 * Math.cbrt(Math.random()); 
         const theta = Math.random() * 2 * Math.PI;
         const phi = Math.acos(2 * Math.random() - 1);
         coords[i * 3] = r * Math.sin(phi) * Math.cos(theta);
@@ -61,7 +62,6 @@ const PlanetMarker: React.FC<{ section: SectionConfig }> = ({ section }) => {
 
   return (
     <mesh ref={meshRef} position={[0, 0, section.depth]} rotation={[0.5, 0, 0]}>
-      {/* Visual geometry - using Icosahedron for a "Tech" look */}
       <icosahedronGeometry args={[15, 1]} /> 
       <meshBasicMaterial 
         color={section.wireframeColor} 
@@ -73,17 +73,10 @@ const PlanetMarker: React.FC<{ section: SectionConfig }> = ({ section }) => {
   );
 };
 
-// Controls the camera based on scroll
 const CameraController = ({ scrollY }: { scrollY: number }) => {
   useFrame(({ camera }) => {
-    // Smoothly interpolate camera position
-    // We map scrollY (positive pixels) to negative Z depth
     const targetZ = -scrollY * SCROLL_TO_DEPTH_RATIO;
-    
-    // Basic lerp for smoothness
     camera.position.z += (targetZ - camera.position.z) * 0.05;
-    
-    // Slight drift for cinematic effect
     camera.position.x = Math.sin(Date.now() * 0.0005) * 0.5;
     camera.position.y = Math.cos(Date.now() * 0.0005) * 0.5;
   });
@@ -92,11 +85,11 @@ const CameraController = ({ scrollY }: { scrollY: number }) => {
 
 export const ImmersiveSpace: React.FC<ImmersiveSpaceProps> = ({ scrollY }) => {
   return (
-    <div className="fixed inset-0 z-0">
+    <div className="fixed inset-0 z-0 pointer-events-none">
       <Canvas
         camera={{ position: [0, 0, 5], fov: 60, far: 1000 }}
         gl={{ antialias: true, alpha: true }}
-        dpr={[1, 2]}
+        dpr={[1, 2]} // Limit pixel ratio to 2 for performance
       >
         <fog attach="fog" args={['#020408', 5, 80]} />
         <ambientLight intensity={0.2} />
