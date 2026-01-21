@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { 
@@ -100,7 +101,7 @@ const MOCK_ITEMS: ProductItem[] = [
         price: 150.00,
         image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=800',
         theme: 'cyan',
-        tags: ['outerwear', 'waterproof', 'tech'],
+        tags: ['outerwear', 'waterproof', 'tech', 'jacket'],
         description: 'Engineered for the elements. Features waterproof ballistic nylon and concealed magnetic pockets for your tech essentials. Designed with a modular zipper system.',
         reviews: []
     }
@@ -231,8 +232,7 @@ const VirtualTryOnModal: React.FC<{
         setCameraError(null);
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            // In a real app, we'd handle the stream here. For now, just switch mode.
-            stream.getTracks().forEach(track => track.stop()); // Stop immediately since this is a UI prototype
+            stream.getTracks().forEach(track => track.stop());
             setMode('camera');
         } catch (err) {
             setCameraError("Camera permission denied. Please enable access or use alternative input protocols.");
@@ -245,7 +245,6 @@ const VirtualTryOnModal: React.FC<{
         <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
             <div className="fixed inset-0 bg-black/90 backdrop-blur-md" onClick={onClose} />
             <div className="relative bg-[#0B0C15] w-full max-w-4xl h-[90vh] md:h-[80vh] rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.9)] flex flex-col animate-in fade-in zoom-in-95 duration-300">
-                {/* Header */}
                 <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5 backdrop-blur-3xl">
                     <div className="flex items-center gap-4">
                         <Sparkles size={22} className="text-cyan-400" />
@@ -276,59 +275,26 @@ const VirtualTryOnModal: React.FC<{
                             )}
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-2xl px-4">
-                                <button 
-                                    onClick={handleCameraMode}
-                                    disabled={isCameraLoading}
-                                    className={`group relative h-52 rounded-3xl bg-[#121421] border border-white/10 overflow-hidden transition-all duration-700 hover:border-cyan-400/60 hover:shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:-translate-y-1 shadow-[inset_0_0_30px_rgba(255,255,255,0.02)] ${isCameraLoading ? 'opacity-50 cursor-wait' : ''}`}
-                                >
+                                <button onClick={handleCameraMode} disabled={isCameraLoading} className={`group relative h-52 rounded-3xl bg-[#121421] border border-white/10 overflow-hidden transition-all duration-700 hover:border-cyan-400/60 hover:shadow-[0_0_40px_rgba(6,182,212,0.2)] hover:-translate-y-1 ${isCameraLoading ? 'opacity-50 cursor-wait' : ''}`}>
                                     <div className="relative z-10 flex flex-col items-center justify-center h-full space-y-4">
-                                        <div className="p-5 bg-cyan-500/10 rounded-2xl text-cyan-400 border border-cyan-500/20 group-hover:scale-110 transition-all duration-500">
-                                            {isCameraLoading ? <Loader2 className="animate-spin" size={32} /> : <Camera size={32} />}
-                                        </div>
-                                        <div className="text-center">
-                                            <span className="block text-lg font-display font-bold text-white tracking-widest uppercase">Live Feed</span>
-                                            <span className="text-[10px] text-cyan-400/60 font-mono tracking-[0.2em] mt-1 block">REAL-TIME SYNC</span>
-                                        </div>
+                                        <div className="p-5 bg-cyan-500/10 rounded-2xl text-cyan-400 border border-cyan-500/20 group-hover:scale-110 transition-all duration-500">{isCameraLoading ? <Loader2 className="animate-spin" size={32} /> : <Camera size={32} />}</div>
+                                        <div className="text-center"><span className="block text-lg font-display font-bold text-white tracking-widest uppercase">Live Feed</span><span className="text-[10px] text-cyan-400/60 font-mono tracking-[0.2em] mt-1 block">REAL-TIME SYNC</span></div>
                                     </div>
-                                    <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-0 group-hover:opacity-100 blur-[2px] transition-all duration-500" />
                                 </button>
-
-                                <button 
-                                    onClick={() => setMode('upload')}
-                                    className="group relative h-52 rounded-3xl bg-[#121421] border border-white/10 overflow-hidden transition-all duration-700 hover:border-purple-400/60 hover:shadow-[0_0_40px_rgba(168,85,247,0.2)] hover:-translate-y-1 shadow-[inset_0_0_30px_rgba(255,255,255,0.02)]"
-                                >
+                                <button onClick={() => setMode('upload')} className="group relative h-52 rounded-3xl bg-[#121421] border border-white/10 overflow-hidden transition-all duration-700 hover:border-purple-400/60 hover:shadow-[0_0_40px_rgba(168,85,247,0.2)] hover:-translate-y-1">
                                     <div className="relative z-10 flex flex-col items-center justify-center h-full space-y-4">
-                                        <div className="p-5 bg-purple-500/10 rounded-2xl text-purple-400 border border-purple-500/20 group-hover:scale-110 transition-all duration-500">
-                                            <Upload size={32} />
-                                        </div>
-                                        <div className="text-center">
-                                            <span className="block text-lg font-display font-bold text-white tracking-widest uppercase">Static Img</span>
-                                            <span className="text-[10px] text-purple-400/60 font-mono tracking-[0.2em] mt-1 block">OFFLINE UPLOAD</span>
-                                        </div>
+                                        <div className="p-5 bg-purple-500/10 rounded-2xl text-purple-400 border border-purple-500/20 group-hover:scale-110 transition-all duration-500"><Upload size={32} /></div>
+                                        <div className="text-center"><span className="block text-lg font-display font-bold text-white tracking-widest uppercase">Static Img</span><span className="text-[10px] text-purple-400/60 font-mono tracking-[0.2em] mt-1 block">OFFLINE UPLOAD</span></div>
                                     </div>
-                                    <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-0 group-hover:opacity-100 blur-[2px] transition-all duration-500" />
                                 </button>
                             </div>
 
-                            <div className="w-full max-w-2xl text-center">
-                                <p className="text-[10px] font-mono text-white/30 uppercase tracking-[0.3em] bg-white/5 py-3 px-6 rounded-full inline-block">
-                                    Photos are processed for preview and never stored.
-                                </p>
-                            </div>
-
+                            <div className="w-full max-w-2xl text-center"><p className="text-[10px] font-mono text-white/30 uppercase tracking-[0.3em] bg-white/5 py-3 px-6 rounded-full inline-block">Photos are processed for preview and never stored.</p></div>
                             <div className="w-full max-w-2xl border-t border-white/10 pt-10 relative px-6">
                                 <p className="text-center text-[10px] font-mono text-slate-500 uppercase tracking-[0.4em] mb-8">Try on a Model</p>
                                 <div className="flex justify-center gap-6 overflow-x-auto pb-4 no-scrollbar">
                                     {models.map((m, i) => (
-                                        <button 
-                                            key={i}
-                                            onClick={() => { setSelectedModel(i); setMode('model'); }}
-                                            className={`group relative shrink-0 w-24 h-24 rounded-[1.5rem] overflow-hidden border-2 transition-all duration-500 hover:scale-110 
-                                            {/* Fix: removed redundant mode === 'model' check which was causing a TS error inside the mode === 'options' block */}
-                                            ${selectedModel === i 
-                                                ? 'border-cyan-400 shadow-[0_0_30px_rgba(6,182,212,0.6)] ring-4 ring-cyan-400/20' 
-                                                : 'border-white/10 hover:border-white/30 bg-white/5'}`}
-                                        >
+                                        <button key={i} onClick={() => { setSelectedModel(i); setMode('model'); }} className={`group relative shrink-0 w-24 h-24 rounded-[1.5rem] overflow-hidden border-2 transition-all duration-500 hover:scale-110 ${selectedModel === i ? 'border-cyan-400 shadow-[0_0_30px_rgba(6,182,212,0.6)] ring-4 ring-cyan-400/20' : 'border-white/10 hover:border-white/30 bg-white/5'}`}>
                                             <img src={m} className={`w-full h-full object-cover transition-opacity duration-500 ${selectedModel === i ? 'opacity-100' : 'opacity-60'}`} alt={`Model ${i+1}`} />
                                         </button>
                                     ))}
@@ -336,23 +302,9 @@ const VirtualTryOnModal: React.FC<{
                             </div>
                         </div>
                     )}
-
                     {mode !== 'options' && (
                         <div className="flex-grow relative bg-black flex items-center justify-center overflow-hidden">
-                            <div className="absolute inset-0 pointer-events-none z-10 border-[24px] border-black/30">
-                                <div className="absolute top-10 left-10 flex flex-col gap-3">
-                                    <div className="flex items-center gap-3 px-4 py-1.5 bg-black/60 backdrop-blur-xl rounded-full border border-cyan-500/30 text-[10px] font-mono text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
-                                        <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                                        SIMULATION_LIVE: 98% SYNC
-                                    </div>
-                                </div>
-                                <div className="absolute inset-0 flex items-center justify-center opacity-30">
-                                    <div className="w-72 h-[450px] border border-cyan-500/40 rounded-[5rem] relative">
-                                        <div className="absolute inset-x-0 h-[2px] bg-cyan-400/50 blur-[1px] animate-scan" />
-                                    </div>
-                                </div>
-                            </div>
-                            <img src={mode === 'model' ? models[selectedModel] : "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=800"} className="w-full h-full object-cover opacity-60 grayscale transition-all duration-1000 blur-[3px] scale-105" alt="Simulator Backdrop" />
+                             <img src={mode === 'model' ? models[selectedModel] : "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=800"} className="w-full h-full object-cover opacity-60 grayscale transition-all duration-1000 blur-[3px] scale-105" alt="Simulator Backdrop" />
                             <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
                                 <div className="text-center p-10 bg-[#0B0C15]/80 backdrop-blur-2xl border border-white/10 rounded-[3rem] max-w-sm shadow-2xl">
                                     <h4 className="text-2xl font-display font-bold text-white mb-3 uppercase tracking-widest">{mode === 'camera' ? 'Feed Locked' : mode === 'upload' ? 'Unit Uploaded' : 'Subject Synced'}</h4>
@@ -364,22 +316,11 @@ const VirtualTryOnModal: React.FC<{
                     )}
                 </div>
 
-                {/* Footer Controls */}
                 <div className="p-8 bg-[#0B0C15] border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="flex gap-3">
-                        <div className="flex flex-col">
-                            <span className="text-[9px] font-mono text-slate-600 tracking-widest uppercase mb-1">Protocol</span>
-                            <span className="px-4 py-1.5 bg-white/5 rounded-xl text-[10px] font-mono text-slate-300 border border-white/5">V2.4_SIM_CORE</span>
-                        </div>
-                    </div>
+                    <div className="flex gap-3"><div className="flex flex-col"><span className="text-[9px] font-mono text-slate-600 tracking-widest uppercase mb-1">Protocol</span><span className="px-4 py-1.5 bg-white/5 rounded-xl text-[10px] font-mono text-slate-300 border border-white/5">V2.4_SIM_CORE</span></div></div>
                     <div className="flex items-center gap-4 w-full md:w-auto">
-                        <button className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-[#1E1F2E] hover:bg-[#2A2B3D] text-white font-bold rounded-2xl transition-all text-xs border border-white/5 group">
-                            <Maximize2 size={16} className="group-hover:scale-110 transition-transform" /> FULLSCAN
-                        </button>
-                        <button 
-                            onClick={() => onAddToCart(item)}
-                            className={`flex-1 md:flex-none flex items-center justify-center gap-3 px-12 py-4 ${styles.btn} text-white font-display font-black rounded-2xl transition-all shadow-[0_0_30px_rgba(0,0,0,0.5)] text-xs tracking-widest group relative overflow-hidden active:scale-95`}
-                        >
+                        <button className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-[#1E1F2E] hover:bg-[#2A2B3D] text-white font-bold rounded-2xl transition-all text-xs border border-white/5 group"><Maximize2 size={16} className="group-hover:scale-110 transition-transform" /> FULLSCAN</button>
+                        <button onClick={() => onAddToCart(item)} className={`flex-1 md:flex-none flex items-center justify-center gap-3 px-12 py-4 ${styles.btn} text-white font-display font-black rounded-2xl transition-all shadow-[0_0_30px_rgba(0,0,0,0.5)] text-xs tracking-widest group relative overflow-hidden active:scale-95`}>
                             <span className="relative z-10">ADD TO CART</span>
                             <div className="absolute inset-0 w-1/2 h-full bg-white/20 -skew-x-[30deg] -translate-x-full group-hover:translate-x-[250%] transition-transform duration-1000" />
                         </button>
@@ -393,56 +334,29 @@ const VirtualTryOnModal: React.FC<{
 // --- Redesigned Side Menu ---
 const SideMenu: React.FC<{ isOpen: boolean, onClose: () => void, onNavigate: any }> = ({ isOpen, onClose, onNavigate }) => {
     const [selectedCategory, setSelectedCategory] = useState(APP_CONFIG.categories[0]);
-
     if (!isOpen) return null;
-
     return (
         <div className="fixed inset-0 z-[150] flex">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
             <div className="relative w-[60vw] bg-[#0B0C15]/95 backdrop-blur-3xl border-r border-white/10 h-full flex flex-col animate-in slide-in-from-left duration-500 shadow-2xl">
-                <div className="p-10 flex flex-col gap-1">
-                    <h1 className="text-3xl font-display font-black text-white tracking-[0.3em]">ONES4</h1>
-                    <span className="text-[10px] font-mono text-cyan-400 tracking-[0.5em] uppercase">MENU</span>
-                </div>
-
+                <div className="p-10 flex flex-col gap-1"><h1 className="text-3xl font-display font-black text-white tracking-[0.3em]">ONES4</h1><span className="text-[10px] font-mono text-cyan-400 tracking-[0.5em] uppercase">MENU</span></div>
                 <div className="flex flex-1 overflow-hidden">
                     <div className="w-1/2 border-r border-white/5 flex flex-col p-6 gap-2">
                         {APP_CONFIG.categories.map((cat) => (
-                            <button 
-                                key={cat.id} 
-                                onClick={() => setSelectedCategory(cat)}
-                                className={`flex items-center gap-5 p-5 rounded-2xl transition-all group ${selectedCategory.id === cat.id ? 'bg-cyan-400 text-black shadow-[0_0_20px_rgba(6,182,212,0.3)]' : 'text-white/40 hover:bg-white/5 hover:text-white'}`}
-                            >
+                            <button key={cat.id} onClick={() => setSelectedCategory(cat)} className={`flex items-center gap-5 p-5 rounded-2xl transition-all group ${selectedCategory.id === cat.id ? 'bg-cyan-400 text-black shadow-[0_0_20px_rgba(6,182,212,0.3)]' : 'text-white/40 hover:bg-white/5 hover:text-white'}`}>
                                 <cat.icon size={22} className={`${selectedCategory.id === cat.id ? 'text-black' : 'text-cyan-400/50 group-hover:text-cyan-400'}`} />
                                 <span className="text-sm font-display font-bold uppercase tracking-widest">{cat.label}</span>
                                 {cat.sub && <ChevronRight size={14} className={`ml-auto opacity-40 ${selectedCategory.id === cat.id ? 'hidden' : ''}`} />}
                             </button>
                         ))}
-                        <div className="mt-auto pt-6 border-t border-white/5 flex flex-col gap-2">
-                             <button onClick={() => { onNavigate('immersive'); onClose(); }} className="flex items-center gap-5 p-5 rounded-2xl text-white/40 hover:text-white hover:bg-white/5 transition-all">
-                                <Home size={22} className="text-white/20" />
-                                <span className="text-sm font-display font-bold uppercase tracking-widest">Jump Home</span>
-                             </button>
-                        </div>
+                        <div className="mt-auto pt-6 border-t border-white/5 flex flex-col gap-2"><button onClick={() => { onNavigate('immersive'); onClose(); }} className="flex items-center gap-5 p-5 rounded-2xl text-white/40 hover:text-white hover:bg-white/5 transition-all"><Home size={22} className="text-white/20" /><span className="text-sm font-display font-bold uppercase tracking-widest">Jump Home</span></button></div>
                     </div>
-
                     <div className="w-1/2 p-10 flex flex-col animate-in fade-in slide-in-from-left-4 duration-500" key={selectedCategory.id}>
                         <h3 className="text-[10px] font-mono text-white/20 uppercase tracking-[0.5em] mb-10">Collections / {selectedCategory.label}</h3>
-                        <div className="space-y-6">
-                            {selectedCategory.sub.map((sub, i) => (
-                                <button key={i} className="group flex items-center justify-between w-full text-left">
-                                    <span className="text-xl font-display font-bold text-white/60 group-hover:text-white group-hover:translate-x-2 transition-all">{sub}</span>
-                                    <ChevronRight size={18} className="opacity-0 group-hover:opacity-100 group-hover:text-cyan-400 transition-all" />
-                                </button>
-                            ))}
-                        </div>
+                        <div className="space-y-6">{selectedCategory.sub.map((sub, i) => (<button key={i} className="group flex items-center justify-between w-full text-left"><span className="text-xl font-display font-bold text-white/60 group-hover:text-white group-hover:translate-x-2 transition-all">{sub}</span><ChevronRight size={18} className="opacity-0 group-hover:opacity-100 group-hover:text-cyan-400 transition-all" /></button>))}</div>
                     </div>
                 </div>
-
-                <div className="p-10 border-t border-white/5 flex justify-between items-center opacity-30">
-                    <span className="text-[10px] font-mono uppercase tracking-widest">© 2024 DEPLOYMENT</span>
-                    <span className="text-[10px] font-mono uppercase tracking-widest">v2.4_INTERFACE</span>
-                </div>
+                <div className="p-10 border-t border-white/5 flex justify-between items-center opacity-30"><span className="text-[10px] font-mono uppercase tracking-widest">© 2024 DEPLOYMENT</span><span className="text-[10px] font-mono uppercase tracking-widest">v2.4_INTERFACE</span></div>
             </div>
         </div>
     );
@@ -457,6 +371,7 @@ export const ShopPage: React.FC<{ onNavigate: (view: 'immersive' | 'shop') => vo
     const [selectedItem, setSelectedItem] = useState<ProductItem | null>(null);
     const [isTryOnOpen, setIsTryOnOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [browsingHistory, setBrowsingHistory] = useState<string[]>([]);
     
     const [aiInput, setAiInput] = useState('');
     const [aiMessages, setAiMessages] = useState<{ role: 'user' | 'model', text: string }[]>([
@@ -489,18 +404,44 @@ export const ShopPage: React.FC<{ onNavigate: (view: 'immersive' | 'shop') => vo
         setIsAiLoading(true);
 
         try {
+            const productContext = products.map(p => (
+                `- ${p.name}: $${p.price}. Tags: [${p.tags.join(', ')}]. Description: ${p.description.replace(/\n/g, ' ')}`
+            )).join('\n');
+
+            let historyContext = '';
+            if (browsingHistory.length > 0) {
+                const viewedItems = browsingHistory
+                    .map(id => products.find(p => p.id === id))
+                    .filter((p): p is ProductItem => !!p)
+                    .map(p => p.name);
+                if (viewedItems.length > 0) {
+                    historyContext = `User has recently viewed: ${viewedItems.join(', ')}. Use this to personalize recommendations.`;
+                }
+            }
+
+            const fullPrompt = `${historyContext}\n\nAvailable Products Catalog:\n${productContext}\n\nUser's request: "${userMsg}"`;
+            
+            const systemInstruction = "You are the ONES4 Oracle, a high-fashion AI assistant. You speak in a sleek, sophisticated, futuristic tone. Leverage the user's browsing history to offer personalized recommendations. Use the detailed product descriptions and tags provided to answer specific questions about materials, fit, and features. Keep responses concise and helpful.";
+
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const response = await ai.models.generateContent({
                 model: 'gemini-3-flash-preview',
-                contents: `User shopping at ONES4 techwear. Product info: ${products.map(p => `${p.name} ($${p.price})`).join(', ')}. Query: ${userMsg}`,
-                config: { systemInstruction: "Speak like a high-end fashion AI. Sophisticated tone. Responses under 3 sentences." }
+                contents: fullPrompt,
+                config: { systemInstruction }
             });
-            setAiMessages(prev => [...prev, { role: 'model', text: response.text || "Interface error." }]);
+            
+            setAiMessages(prev => [...prev, { role: 'model', text: response.text || "Interface error. Please retry uplink." }]);
         } catch (error) {
-            setAiMessages(prev => [...prev, { role: 'model', text: "Signal lost." }]);
+            console.error("Gemini Error:", error);
+            setAiMessages(prev => [...prev, { role: 'model', text: "Signal lost. Check neural link connection." }]);
         } finally {
             setIsAiLoading(false);
         }
+    };
+
+    const handleProductSelect = (product: ProductItem) => {
+        setSelectedItem(product);
+        setBrowsingHistory(prev => [...new Set([product.id, ...prev])].slice(0, 5));
     };
 
     return (
@@ -528,16 +469,10 @@ export const ShopPage: React.FC<{ onNavigate: (view: 'immersive' | 'shop') => vo
                             <input type="text" placeholder="Scan Database..." className="bg-transparent border-none outline-none text-xs font-bold uppercase tracking-widest placeholder:text-white/20 w-full" />
                         </div>
                         <div className="flex items-center gap-4">
-                            <button className="p-4 hover:text-cyan-400 transition-colors hidden md:block">
-                                <User size={26} />
-                            </button>
+                            <button className="p-4 hover:text-cyan-400 transition-colors hidden md:block"><User size={26} /></button>
                             <button onClick={() => setIsCartOpen(true)} className="relative p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all group">
                                 <ShoppingBag size={26} className="group-hover:text-cyan-400" />
-                                {cart.length > 0 && (
-                                    <span className="absolute top-2 right-2 w-5 h-5 bg-cyan-400 text-black text-[10px] font-black rounded-full flex items-center justify-center">
-                                        {cart.reduce((sum, i) => sum + i.quantity, 0)}
-                                    </span>
-                                )}
+                                {cart.length > 0 && (<span className="absolute top-2 right-2 w-5 h-5 bg-cyan-400 text-black text-[10px] font-black rounded-full flex items-center justify-center">{cart.reduce((sum, i) => sum + i.quantity, 0)}</span>)}
                             </button>
                         </div>
                     </div>
@@ -545,40 +480,25 @@ export const ShopPage: React.FC<{ onNavigate: (view: 'immersive' | 'shop') => vo
             </header>
 
             <main className="pt-40 pb-24 max-w-7xl mx-auto px-10">
-                <div className="mb-24">
-                    <span className="text-cyan-400 text-[10px] font-mono tracking-[0.8em] uppercase mb-4 block">Archive Deployment v2.4</span>
-                    <h2 className="text-7xl md:text-9xl font-display font-black tracking-tighter mb-8 leading-none">THE COLLECTION</h2>
-                </div>
+                <div className="mb-24"><span className="text-cyan-400 text-[10px] font-mono tracking-[0.8em] uppercase mb-4 block">Archive Deployment v2.4</span><h2 className="text-7xl md:text-9xl font-display font-black tracking-tighter mb-8 leading-none">THE COLLECTION</h2></div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
                     {loading ? Array.from({ length: 6 }).map((_, i) => <div key={i} className="aspect-[3/4] bg-white/5 animate-pulse rounded-[3rem]" />) : (
                         products.map(product => (
-                            <div key={product.id} onClick={() => setSelectedItem(product)} className="group relative bg-white/5 rounded-[3rem] border border-white/5 overflow-hidden hover:border-cyan-400/40 transition-all duration-700 hover:-translate-y-4 shadow-2xl cursor-pointer">
+                            <div key={product.id} onClick={() => handleProductSelect(product)} className="group relative bg-white/5 rounded-[3rem] border border-white/5 overflow-hidden hover:border-cyan-400/40 transition-all duration-700 hover:-translate-y-4 shadow-2xl cursor-pointer">
                                 <div className="aspect-[4/5] relative overflow-hidden">
                                     <img src={product.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-[#020408] via-transparent to-transparent opacity-80" />
-                                    <div className="absolute bottom-10 left-10 opacity-0 group-hover:opacity-100 transition-all translate-y-4 group-hover:translate-y-0 flex items-center gap-3">
-                                        <div className="p-3 bg-cyan-400 rounded-full text-black"><Eye size={20} /></div>
-                                        <span className="text-[10px] font-mono font-bold tracking-widest text-cyan-400">EXPAND UNIT INTEL</span>
-                                    </div>
+                                    <div className="absolute bottom-10 left-10 opacity-0 group-hover:opacity-100 transition-all translate-y-4 group-hover:translate-y-0 flex items-center gap-3"><div className="p-3 bg-cyan-400 rounded-full text-black"><Eye size={20} /></div><span className="text-[10px] font-mono font-bold tracking-widest text-cyan-400">EXPAND UNIT INTEL</span></div>
                                 </div>
                                 <div className="p-10">
                                     <div className="flex justify-between items-start mb-6">
                                         <div>
                                             <h3 className="text-2xl font-bold tracking-tight mb-2">{product.name}</h3>
-                                            <div className="flex gap-3">
-                                                {product.tags.slice(0, 2).map(tag => (
-                                                    <span key={tag} className="text-[9px] font-mono text-white/30 uppercase tracking-[0.3em]">{tag}</span>
-                                                ))}
-                                            </div>
+                                            <div className="flex gap-3">{product.tags.slice(0, 2).map(tag => (<span key={tag} className="text-[9px] font-mono text-white/30 uppercase tracking-[0.3em]">{tag}</span>))}</div>
                                         </div>
                                         <span className="text-2xl font-black text-cyan-400">${product.price}</span>
                                     </div>
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); addToCart(product); }}
-                                        className="w-full py-5 bg-white/5 hover:bg-cyan-400 text-white hover:text-black font-black text-[10px] uppercase tracking-[0.5em] rounded-2xl transition-all border border-white/10"
-                                    >
-                                        DEPLOY UNIT
-                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); addToCart(product); }} className="w-full py-5 bg-white/5 hover:bg-cyan-400 text-white hover:text-black font-black text-[10px] uppercase tracking-[0.5em] rounded-2xl transition-all border border-white/10">DEPLOY UNIT</button>
                                 </div>
                             </div>
                         ))
@@ -586,89 +506,32 @@ export const ShopPage: React.FC<{ onNavigate: (view: 'immersive' | 'shop') => vo
                 </div>
             </main>
 
-            <ProductDetailModal 
-                item={selectedItem}
-                isOpen={!!selectedItem && !isTryOnOpen}
-                onClose={() => setSelectedItem(null)}
-                onAddToCart={addToCart}
-                onOpenTryOn={() => setIsTryOnOpen(true)}
-            />
-
-            <VirtualTryOnModal 
-                item={selectedItem}
-                isOpen={isTryOnOpen}
-                onClose={() => setIsTryOnOpen(false)}
-                onAddToCart={addToCart}
-            />
-
+            <ProductDetailModal item={selectedItem} isOpen={!!selectedItem && !isTryOnOpen} onClose={() => setSelectedItem(null)} onAddToCart={addToCart} onOpenTryOn={() => setIsTryOnOpen(true)} />
+            <VirtualTryOnModal item={selectedItem} isOpen={isTryOnOpen} onClose={() => setIsTryOnOpen(false)} onAddToCart={addToCart} />
             <SideMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} onNavigate={onNavigate} />
 
             <div className={`fixed bottom-10 right-10 z-[200] transition-all duration-500 ${isAiOpen ? 'w-96 h-[600px]' : 'w-20 h-20'}`}>
                 {isAiOpen ? (
                     <div className="w-full h-full bg-[#0B0C15]/95 backdrop-blur-3xl border border-white/10 rounded-[3rem] shadow-2xl flex flex-col overflow-hidden">
-                        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-cyan-400/5">
-                            <div className="flex items-center gap-4">
-                                <Sparkles size={22} className="text-cyan-400" />
-                                <span className="text-xs font-black uppercase tracking-widest">Oracle Assistant</span>
-                            </div>
-                            <button onClick={() => setIsAiOpen(false)} className="text-white/20 hover:text-white"><X size={24} /></button>
-                        </div>
+                        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-cyan-400/5"><div className="flex items-center gap-4"><Sparkles size={22} className="text-cyan-400" /><span className="text-xs font-black uppercase tracking-widest">Oracle Assistant</span></div><button onClick={() => setIsAiOpen(false)} className="text-white/20 hover:text-white"><X size={24} /></button></div>
                         <div className="flex-grow overflow-y-auto p-8 space-y-6 no-scrollbar">
-                            {aiMessages.map((m, i) => (
-                                <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-[85%] p-5 rounded-[2rem] text-sm leading-relaxed ${m.role === 'user' ? 'bg-cyan-400 text-black font-bold' : 'bg-white/5 border border-white/5 text-white/70'}`}>
-                                        {m.text}
-                                    </div>
-                                </div>
-                            ))}
+                            {aiMessages.map((m, i) => (<div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[85%] p-5 rounded-[2rem] text-sm leading-relaxed ${m.role === 'user' ? 'bg-cyan-400 text-black font-bold' : 'bg-white/5 border border-white/5 text-white/70'}`}>{m.text}</div></div>))}
                             {isAiLoading && <div className="p-4 bg-white/5 rounded-full animate-pulse w-fit"><Loader2 className="animate-spin text-cyan-400" size={20} /></div>}
                         </div>
-                        <div className="p-6 border-t border-white/5 flex gap-4">
-                            <input value={aiInput} onChange={(e) => setAiInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAiMessage()} type="text" placeholder="Consult..." className="flex-grow bg-white/5 rounded-2xl px-6 py-4 text-sm border border-white/5 outline-none focus:border-cyan-400/50 transition-all" />
-                            <button onClick={handleAiMessage} className="p-4 bg-cyan-400 text-black rounded-2xl hover:scale-105 transition-transform"><Send size={20} /></button>
-                        </div>
+                        <div className="p-6 border-t border-white/5 flex gap-4"><input value={aiInput} onChange={(e) => setAiInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAiMessage()} type="text" placeholder="Consult..." className="flex-grow bg-white/5 rounded-2xl px-6 py-4 text-sm border border-white/5 outline-none focus:border-cyan-400/50 transition-all" /><button onClick={handleAiMessage} className="p-4 bg-cyan-400 text-black rounded-2xl hover:scale-105 transition-transform"><Send size={20} /></button></div>
                     </div>
-                ) : (
-                    <button onClick={() => setIsAiOpen(true)} className="w-full h-full bg-cyan-400 text-black rounded-[2rem] flex items-center justify-center shadow-[0_0_40px_rgba(6,182,212,0.5)] hover:scale-110 active:scale-95 transition-all">
-                        <Sparkles size={32} />
-                    </button>
-                )}
+                ) : (<button onClick={() => setIsAiOpen(true)} className="w-full h-full bg-cyan-400 text-black rounded-[2rem] flex items-center justify-center shadow-[0_0_40px_rgba(6,182,212,0.5)] hover:scale-110 active:scale-95 transition-all"><Sparkles size={32} /></button>)}
             </div>
 
             {isCartOpen && (
                 <div className="fixed inset-0 z-[300]">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsCartOpen(false)} />
                     <div className="absolute top-0 right-0 h-full w-full max-w-lg bg-[#0B0C15] border-l border-white/10 p-12 flex flex-col shadow-2xl animate-in slide-in-from-right duration-500">
-                        <div className="flex justify-between items-center mb-16">
-                            <h2 className="text-4xl font-display font-black tracking-tight uppercase">Cart</h2>
-                            <button onClick={() => setIsCartOpen(false)} className="p-3 hover:bg-white/5 rounded-full"><X size={28} /></button>
-                        </div>
-                        <div className="flex-grow overflow-y-auto no-scrollbar space-y-8">
-                            {cart.length === 0 ? <p className="text-center opacity-20 uppercase tracking-[0.5em] py-20">No units deployed</p> : cart.map(item => (
-                                <div key={item.id} className="flex gap-8 group">
-                                    <div className="w-28 h-28 rounded-3xl overflow-hidden border border-white/10">
-                                        <img src={item.image} className="w-full h-full object-cover" />
-                                    </div>
-                                    <div className="flex-grow flex flex-col justify-between py-2">
-                                        <div><h4 className="text-lg font-bold uppercase tracking-widest">{item.name}</h4><span className="text-cyan-400 text-lg font-black">${item.price}</span></div>
-                                        <div className="flex items-center gap-6">
-                                            <button onClick={() => setCart(prev => prev.map(i => i.id === item.id ? {...i, quantity: Math.max(1, i.quantity - 1)} : i))} className="text-white/30 hover:text-white"><Minus size={18} /></button>
-                                            <span className="text-sm font-mono">{item.quantity}</span>
-                                            <button onClick={() => setCart(prev => prev.map(i => i.id === item.id ? {...i, quantity: i.quantity + 1} : i))} className="text-white/30 hover:text-white"><Plus size={18} /></button>
-                                        </div>
-                                    </div>
-                                    <button onClick={() => setCart(prev => prev.filter(i => i.id !== item.id))} className="text-white/10 hover:text-red-400 self-center"><Trash2 size={24} /></button>
-                                </div>
-                            ))}
-                        </div>
+                        <div className="flex justify-between items-center mb-16"><h2 className="text-4xl font-display font-black tracking-tight uppercase">Cart</h2><button onClick={() => setIsCartOpen(false)} className="p-3 hover:bg-white/5 rounded-full"><X size={28} /></button></div>
+                        <div className="flex-grow overflow-y-auto no-scrollbar space-y-8">{cart.length === 0 ? <p className="text-center opacity-20 uppercase tracking-[0.5em] py-20">No units deployed</p> : cart.map(item => (<div key={item.id} className="flex gap-8 group"><div className="w-28 h-28 rounded-3xl overflow-hidden border border-white/10"><img src={item.image} className="w-full h-full object-cover" /></div><div className="flex-grow flex flex-col justify-between py-2"><div><h4 className="text-lg font-bold uppercase tracking-widest">{item.name}</h4><span className="text-cyan-400 text-lg font-black">${item.price}</span></div><div className="flex items-center gap-6"><button onClick={() => setCart(prev => prev.map(i => i.id === item.id ? {...i, quantity: Math.max(1, i.quantity - 1)} : i))} className="text-white/30 hover:text-white"><Minus size={18} /></button><span className="text-sm font-mono">{item.quantity}</span><button onClick={() => setCart(prev => prev.map(i => i.id === item.id ? {...i, quantity: i.quantity + 1} : i))} className="text-white/30 hover:text-white"><Plus size={18} /></button></div></div><button onClick={() => setCart(prev => prev.filter(i => i.id !== item.id))} className="text-white/10 hover:text-red-400 self-center"><Trash2 size={24} /></button></div>))}</div>
                         <div className="pt-12 border-t border-white/5 space-y-8">
-                            <div className="flex justify-between items-end">
-                                <span className="text-[10px] font-mono text-white/30 uppercase tracking-[0.4em]">Final Valuation</span>
-                                <span className="text-4xl font-black text-cyan-400">${cart.reduce((sum, i) => sum + (i.price * i.quantity), 0).toFixed(2)}</span>
-                            </div>
-                            <button className="w-full py-6 bg-cyan-400 text-black font-black uppercase tracking-[0.8em] text-[10px] rounded-[2rem] hover:bg-white transition-all shadow-[0_0_50px_rgba(6,182,212,0.3)]">
-                                Finalize Order
-                            </button>
+                            <div className="flex justify-between items-end"><span className="text-[10px] font-mono text-white/30 uppercase tracking-[0.4em]">Final Valuation</span><span className="text-4xl font-black text-cyan-400">${cart.reduce((sum, i) => sum + (i.price * i.quantity), 0).toFixed(2)}</span></div>
+                            <button className="w-full py-6 bg-cyan-400 text-black font-black uppercase tracking-[0.8em] text-[10px] rounded-[2rem] hover:bg-white transition-all shadow-[0_0_50px_rgba(6,182,212,0.3)]">Finalize Order</button>
                         </div>
                     </div>
                 </div>
