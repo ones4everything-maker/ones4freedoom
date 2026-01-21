@@ -1,3 +1,4 @@
+
 export interface WooProduct {
   id: number;
   name: string;
@@ -5,24 +6,51 @@ export interface WooProduct {
   price: string;
   regular_price: string;
   on_sale: boolean;
-  images: { src: string; alt: string }[];
+  images: {
+    src: string;
+    alt: string;
+  }[];
   categories: { id: number; name: string; slug: string }[];
   short_description: string;
 }
 
-export interface SectionConfig {
+export interface ShopifyProduct {
   id: string;
-  depth: number; // The Z-depth in 3D space
   title: string;
-  subtitle: string;
-  color: string; // Hex string for UI
-  wireframeColor: number; // Hex number for Three.js
-  categorySlug: string; // Matches WooCommerce Category Slug
-  description?: string;
+  handle: string;
+  description: string;
+  priceRange: {
+    minVariantPrice: {
+      amount: string;
+      currencyCode: string;
+    };
+  };
+  images: {
+    edges: {
+      node: {
+        url: string;
+        altText: string;
+      };
+    }[];
+  };
+  variants: {
+    edges: {
+      node: {
+        id: string;
+        availableForSale: boolean;
+      };
+    }[];
+  };
 }
 
-export interface ScrollState {
-  progress: number; // 0 to 1
-  depth: number; // Current Z depth
-  activeSectionId: string;
+export interface SectionConfig {
+  id: string;
+  depth: number; 
+  title: string;
+  subtitle: string;
+  color: number; // Hex number for 3D
+  accent: string; // Hex string for UI
+  collectionHandle: string;
+  description: string;
+  planetSize: number;
 }

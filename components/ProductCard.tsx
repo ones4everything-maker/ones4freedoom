@@ -18,7 +18,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   };
 
   return (
-    <div className="group relative bg-surface/80 md:bg-surface/40 border border-white/5 hover:border-accent/80 rounded-xl overflow-hidden backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 sm:hover:-translate-y-2 hover:shadow-[0_0_40px_rgba(0,180,255,0.5)] sm:hover:shadow-[0_0_60px_rgba(0,180,255,0.6)] flex flex-col h-full">
+    <div className="group relative bg-surface/80 md:bg-surface/40 border border-white/5 hover:border-accent/50 rounded-xl overflow-hidden backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(0,180,255,0.25)] sm:hover:shadow-[0_0_40px_rgba(0,180,255,0.3)] flex flex-col h-full">
       {/* Image Container */}
       <div className="aspect-square relative overflow-hidden bg-surface/50">
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent z-10 opacity-60"></div>
@@ -42,11 +42,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       {/* Content */}
       <div className="p-3 sm:p-4 relative z-20 flex-1 flex flex-col justify-between">
         <div>
-          <h3 className="text-white font-medium text-sm sm:text-lg tracking-wide truncate group-hover:text-accent transition-colors" title={product.name}>
+          <h3 className="text-white font-medium text-sm sm:text-lg tracking-wide truncate group-hover:text-accent transition-colors duration-300" title={product.name}>
             {product.name}
           </h3>
           
-          {/* Mobile-visible description (Now visible on all mobile screens) */}
+          {/* Mobile-visible description */}
           <p className="mt-1 sm:mt-2 text-[10px] sm:text-xs text-gray-500 line-clamp-2 block md:hidden">
              {product.short_description.replace(/<[^>]*>?/gm, '')}
           </p>
@@ -69,21 +69,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 relative p-3 sm:p-2 rounded-full transition-all duration-300 border overflow-hidden
                 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-black
                 ${isAdded 
-                    ? 'bg-accent border-accent text-black scale-110 shadow-[0_0_15px_rgba(0,180,255,0.6)]' 
+                    ? 'bg-accent border-accent text-black scale-105 shadow-[0_0_15px_rgba(0,180,255,0.5)]' 
                     : 'bg-white/10 border-white/10 text-white hover:bg-accent hover:text-black hover:border-accent active:scale-95'
                 }
             `}
             aria-label={`Add ${product.name} to cart`}
           >
-            <div className={`relative z-10 transition-transform duration-300 ${isAdded ? 'scale-125' : ''}`}>
-                {isAdded ? <Check size={18} /> : <ShoppingBag size={18} />}
+            <div className={`relative z-10 transition-transform duration-300 flex items-center justify-center ${isAdded ? 'scale-110' : ''}`}>
+                {isAdded ? <Check size={18} className="animate-in zoom-in duration-300" /> : <ShoppingBag size={18} />}
             </div>
             
-            {/* Burst / Ripple Animation */}
+            {/* Subtle Burst Animation */}
             {isAdded && (
               <>
-                <span className="absolute inset-0 bg-white rounded-full animate-ping opacity-75 duration-500"></span>
-                <span className="absolute inset-0 ring-2 ring-white rounded-full animate-[ping_1s_ease-out_infinite] opacity-50 delay-75"></span>
+                <span className="absolute inset-0 bg-white/40 rounded-full animate-ping opacity-75 duration-500"></span>
+                <span className="absolute inset-[-4px] border border-white/30 rounded-full animate-[ping_0.7s_ease-out_1] opacity-0"></span>
               </>
             )}
           </button>
@@ -100,8 +100,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </div>
       </div>
 
-      {/* Glow Effect */}
-      <div className="absolute inset-0 border-2 border-accent/0 group-hover:border-accent/40 rounded-xl pointer-events-none transition-all duration-500"></div>
+      {/* Glow Effect Overlay */}
+      <div className="absolute inset-0 border-2 border-accent/0 group-hover:border-accent/30 rounded-xl pointer-events-none transition-all duration-500"></div>
     </div>
   );
 };

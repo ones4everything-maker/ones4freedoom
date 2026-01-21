@@ -1,207 +1,182 @@
-import React, { useEffect, useState } from 'react';
-import { SECTIONS, SCROLL_TO_DEPTH_RATIO } from '../constants';
-import { SectionConfig, WooProduct } from '../types';
-import { fetchProductsByCategory } from '../services/wooService';
-import { ProductCard } from './ProductCard';
-import { ArrowDown } from 'lucide-react';
 
-interface ContentLayerProps {
-  scrollY: number;
-}
+import React, { useEffect, useState, useRef } from 'react';
+import { SECTIONS, SCROLL_TO_DEPTH_RATIO, SEASON_METADATA } from '../constants';
+import { SectionConfig, ShopifyProduct } from '../types';
+import { fetchCollectionProducts } from '../services/shopifyService';
+import { ShoppingBag, ChevronRight, AlertTriangle, Zap } from 'lucide-react';
 
-const SectionContent: React.FC<{ section: SectionConfig; isActive: boolean; distance: number }> = ({ section, isActive, distance }) => {
-  const [products, setProducts] = useState<WooProduct[]>([]);
-  const [loading, setLoading] = useState(false);
+const ProductStrip: React.FC<{ product: ShopifyProduct }> = ({ product }) => (
+  <div className="group relative w-full bg-surface/40 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden hover:border-accent/50 transition-all duration-500">
+    <div className="aspect-[3/4] overflow-hidden">
+      <img 
+        src={product.images.edges[0]?.node.url} 
+        alt={product.title} 
+        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+      />
+    </div>
+    <div className="p-4 flex justify-between items-end">
+      <div>
+        <h4 className="text-white font-display text-sm font-bold tracking-widest">{product.title}</h4>
+        <p className="text-accent text-xs mt-1">
+          {product.priceRange.minVariantPrice.amount} {product.priceRange.minVariantPrice.currencyCode}
+        </p>
+      </div>
+      <button className="p-2 bg-accent/10 rounded-full text-accent hover:bg-accent hover:text-black transition-colors">
+        <ShoppingBag size={16} />
+      </button>
+    </div>
+  </div>
+);
+
+const SeasonAlert: React.FC<{ activeId: string }> = ({ activeId }) => {
+  const [visible, setVisible] = useState(false);
+  const prevId = useRef(activeId);
+  const meta = SEASON_METADATA[activeId];
 
   useEffect(() => {
-    // Fetch when section becomes active or close to active
-    if (isActive && products.length === 0 && !loading) {
-      setLoading(true);
-      fetchProductsByCategory(section.categorySlug)
-        .then(setProducts)
-        .catch(console.error)
-        .finally(() => setLoading(false));
+    if (activeId !== prevId.current) {
+      setVisible(true);
+      const timer = setTimeout(() => setVisible(false), 3000);
+      prevId.current = activeId;
+      return () => clearTimeout(timer);
     }
-  }, [isActive, section.categorySlug, products.length, loading]);
+  }, [activeId]);
 
-  // Calculate dynamic opacity and parallax offsets based on signed distance
-  // distance > 0: approaching (content flows up from bottom)
-  // distance < 0: leaving (content flows up to top)
-  // Range of interest is approx -30 to +30
-  
-  const fadeRange = 30;
-  const opacity = Math.max(0, Math.min(1, 1 - Math.abs(distance) / fadeRange));
-  
-  // Parallax intensity
-  const headerOffset = distance * 1.5;
-  const gridOffset = distance * 0.5;
-
-  // If completely invisible, don't render content to save resources, but keep layout
-  if (opacity <= 0.01) return <div className="absolute inset-0 pointer-events-none" />;
+  if (!visible || !meta) return null;
 
   return (
-    <div 
-      className="absolute inset-0 flex flex-col items-center justify-start md:justify-center transition-opacity duration-[800ms] ease-in-out"
-      style={{ 
-        zIndex: 10,
-        opacity: opacity,
-        pointerEvents: opacity > 0.6 ? 'auto' : 'none'
-      }}
-    >
-      <div className="w-full max-w-7xl px-4 sm:px-6 md:px-8 pt-20 pb-20 md:py-0 h-full md:h-auto flex flex-col md:flex-row items-center gap-6 md:gap-8 lg:gap-16 justify-center">
-        
-        {/* Left Column: Section Header */}
-        <div 
-            className="w-full md:w-5/12 lg:w-4/12 text-center md:text-left flex-shrink-0"
-            style={{ transform: `translateY(${headerOffset}px)` }}
-        >
-            <div className="flex items-center justify-center md:justify-start gap-4 mb-3 md:mb-4">
-                <span className="h-[1px] w-8 md:w-12 bg-accent"></span>
-                <span className="text-accent tracking-[0.3em] md:tracking-[0.5em] text-[10px] md:text-xs uppercase font-bold">{section.subtitle}</span>
-            </div>
-            
-            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-white mb-4 md:mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] leading-none">
-                {section.title}
-            </h2>
-            
-            <p className="max-w-xl text-gray-400 text-sm md:text-base lg:text-lg leading-relaxed mx-auto md:mx-0 mb-6 md:mb-8 line-clamp-3 md:line-clamp-none">
-                {section.description}
-            </p>
-
-            <button className="hidden md:inline-flex items-center gap-2 px-8 py-4 bg-transparent border border-accent/50 hover:bg-accent/10 text-accent font-bold tracking-widest uppercase rounded-sm transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,180,255,0.3)] group">
-                <span className="group-hover:translate-x-1 transition-transform">Explore Collection</span>
-            </button>
+    <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[60] pointer-events-none animate-in fade-in zoom-in slide-in-from-top-4 duration-500">
+      <div className="flex items-center gap-4 bg-black/80 backdrop-blur-xl border border-white/20 px-6 py-3 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+        <div className="flex items-center gap-2 text-yellow-500 animate-pulse">
+          <Zap size={18} fill="currentColor" />
         </div>
-
-        {/* Right Column: Product Grid */}
-        <div 
-            className="w-full md:w-7/12 lg:w-8/12 flex-1 md:flex-none min-h-0 flex flex-col"
-            style={{ transform: `translateY(${gridOffset}px)` }}
-        >
-            <div className="relative bg-surface/10 backdrop-blur-sm border border-white/5 rounded-3xl p-4 md:p-6 overflow-hidden h-full md:h-auto flex flex-col">
-                {/* HUD Decorations */}
-                <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-accent/30 rounded-tl-2xl"></div>
-                <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-accent/30 rounded-tr-2xl"></div>
-                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-accent/30 rounded-bl-2xl"></div>
-                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-accent/30 rounded-br-2xl"></div>
-
-                {loading ? (
-                <div className="w-full flex-1 flex items-center justify-center min-h-[200px]">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-accent"></div>
-                </div>
-                ) : products.length > 0 ? (
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 overflow-y-auto pr-2 custom-scrollbar flex-1 md:flex-none md:max-h-[60vh]">
-                    {products.map((p, i) => (
-                        <div 
-                            key={p.id}
-                            style={{ 
-                                // Staggered parallax effect per item
-                                // Items further in the grid move slightly faster/slower relative to scroll
-                                transform: `translateY(${distance * (1 + (i % 3) * 0.8)}px)`
-                            }}
-                        >
-                            <ProductCard product={p} />
-                        </div>
-                    ))}
-                </div>
-                ) : (
-                <div className="text-center p-12 flex-1 flex items-center justify-center">
-                    <p className="text-gray-400">No signals detected in this sector.</p>
-                </div>
-                )}
-            </div>
+        <div className="flex flex-col">
+          <span className="text-[10px] font-mono text-white/50 tracking-[0.2em] uppercase">Season Transition</span>
+          <span className="text-sm font-display font-bold text-white tracking-widest">
+            {meta.alert}
+          </span>
         </div>
-
       </div>
     </div>
   );
 };
 
-export const ContentLayer: React.FC<ContentLayerProps> = ({ scrollY }) => {
-  // Current virtual depth based on scroll
+const OrbitalSection: React.FC<{ section: SectionConfig, isActive: boolean, distance: number }> = ({ section, isActive, distance }) => {
+  const [products, setProducts] = useState<ShopifyProduct[]>([]);
+  const opacity = Math.max(0, 1 - Math.abs(distance) / 25);
+
+  useEffect(() => {
+    if (isActive && products.length === 0) {
+      fetchCollectionProducts(section.collectionHandle).then(setProducts);
+    }
+  }, [isActive, section.collectionHandle]);
+
+  if (opacity < 0.01) return null;
+
+  return (
+    <div 
+      className="absolute inset-0 flex flex-col items-center justify-center p-6"
+      style={{ opacity, transform: `translateY(${distance * 3}px)` }}
+    >
+      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <span className="inline-block px-3 py-1 border border-accent/40 text-accent text-[10px] font-mono tracking-widest mb-4">
+            SECTOR: {section.title}
+          </span>
+          <h2 className="text-5xl md:text-8xl font-display font-black text-white leading-none mb-6">
+            {section.title}
+          </h2>
+          <p className="text-slate-400 text-lg leading-relaxed max-w-md mb-8">
+            {section.description}
+          </p>
+          <button className="group flex items-center gap-3 px-8 py-4 bg-white text-black font-display font-bold text-xs tracking-widest hover:bg-accent hover:text-white transition-all">
+            SCAN COLLECTION <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          {products.slice(0, 4).map(p => <ProductStrip key={p.id} product={p} />)}
+          {products.length === 0 && (
+             <div className="col-span-2 flex flex-col items-center justify-center py-20 bg-white/5 border border-white/10 rounded-xl border-dashed">
+                <div className="animate-spin mb-4 text-accent"><Zap size={24} /></div>
+                <span className="text-xs font-mono text-white/40">Initializing Inventory Feed...</span>
+             </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const ContentLayer: React.FC<{ scrollY: number }> = ({ scrollY }) => {
   const currentDepth = -scrollY * SCROLL_TO_DEPTH_RATIO;
-
-  // Find the next approaching section (deeper than current depth)
-  const nextSection = SECTIONS.find(s => s.depth < currentDepth - 5);
   
-  // Find active section for HUD
-  const activeSection = SECTIONS.find(s => Math.abs(currentDepth - s.depth) < 20);
-
-  // Calculate progress to next section
-  let progress = 0;
-  if (nextSection && !activeSection) {
-    const previousSectionIndex = SECTIONS.indexOf(nextSection) - 1;
-    const previousDepth = previousSectionIndex >= 0 ? SECTIONS[previousSectionIndex].depth : 0;
-    const totalDistance = Math.abs(nextSection.depth - previousDepth);
-    const traveled = Math.abs(currentDepth - previousDepth);
-    progress = Math.min(Math.max((traveled / totalDistance) * 100, 0), 100);
-  }
+  // Identify currently active section for the Alert
+  const activeSection = SECTIONS.reduce((prev, curr) => {
+    return (Math.abs(currentDepth - curr.depth) < Math.abs(currentDepth - prev.depth)) ? curr : prev;
+  });
 
   return (
     <div className="fixed inset-0 pointer-events-none">
-      {/* Scroll Indicators - Responsive positioning */}
-      <div 
-        className={`fixed bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-50 transition-all duration-500 ${nextSection || activeSection ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-      >
-        <div className="flex flex-col items-center gap-1 bg-background/50 backdrop-blur-md px-4 py-2 rounded-full border border-white/5 shadow-xl">
-            <span className="text-[8px] sm:text-[9px] text-gray-400 uppercase tracking-[0.2em]">
-                {activeSection ? 'Signal Established' : 'Approaching'}
-            </span>
-            <span className="text-[10px] sm:text-xs uppercase tracking-widest text-accent font-bold drop-shadow-md whitespace-nowrap">
-                {activeSection ? activeSection.title : (nextSection?.title || 'Unknown Sector')}
-            </span>
-            
-            {!activeSection && nextSection && (
-                <div className="w-20 sm:w-24 h-[2px] bg-white/10 mt-1 rounded-full overflow-hidden">
-                    <div 
-                        className="h-full bg-accent shadow-[0_0_10px_#00b4ff] transition-all duration-100 ease-out"
-                        style={{ width: `${progress}%` }}
-                    ></div>
-                </div>
-            )}
-        </div>
-        <ArrowDown size={16} className={`text-white animate-bounce ${activeSection ? 'opacity-50' : 'opacity-100'}`} />
-      </div>
+      <SeasonAlert activeId={activeSection.id} />
 
-      {/* Depth Gauge (Sticky Sidebar) - Hidden on Mobile */}
-      <div className="fixed left-6 top-1/2 -translate-y-1/2 hidden xl:flex flex-col gap-8 z-40">
-        {SECTIONS.map((s) => {
-            const absDistance = Math.abs(currentDepth - s.depth);
-            const isNear = absDistance < 20;
-            return (
-                <div key={s.id} className="flex items-center gap-4 transition-all duration-300">
-                    <div className={`h-16 w-[2px] transition-colors duration-300 ${isNear ? 'bg-accent shadow-[0_0_10px_#00b4ff]' : 'bg-white/10'}`}></div>
-                    <div className={`text-xs uppercase tracking-widest transition-all duration-300 ${isNear ? 'text-white translate-x-0 opacity-100' : '-translate-x-4 opacity-0'}`}>
-                        {s.title}
-                    </div>
-                </div>
-            )
-        })}
+      {/* Intro Overlay */}
+      <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-1000 ${scrollY > 150 ? 'opacity-0' : 'opacity-100'}`}>
+        <div className="text-center">
+          <h1 className="text-[12vw] font-display font-black text-white leading-none opacity-10 select-none">ONES4</h1>
+          <p className="text-accent tracking-[1.5em] text-xs font-bold uppercase mt-8 animate-pulse">Initiate Orbital Jump</p>
+        </div>
       </div>
 
       {SECTIONS.map((section) => {
-        // Calculate signed distance for parallax logic
-        const signedDistance = currentDepth - section.depth; 
-        
-        // Widen the active/render range to allow for enter/exit animations
-        // Range: +/- 40 units (was 20)
-        const isRenderRange = Math.abs(signedDistance) < 40;
-        
-        // Logic for fetching trigger can remain tighter
-        const isActiveForFetch = Math.abs(signedDistance) < 25;
-
-        if (!isRenderRange) return null;
-
+        const distance = currentDepth - section.depth;
+        const isActive = Math.abs(distance) < 20;
         return (
-          <div key={section.id} className="pointer-events-none">
-             <SectionContent 
-                section={section} 
-                isActive={isActiveForFetch} 
-                distance={signedDistance}
-            />
-          </div>
+          <OrbitalSection 
+            key={section.id} 
+            section={section} 
+            isActive={isActive} 
+            distance={distance} 
+          />
         );
       })}
+
+      {/* Orbital HUD */}
+      <div className="fixed left-8 bottom-8 z-50 flex items-end gap-6 pointer-events-auto">
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] text-white/40 font-mono tracking-widest">DEPTH</span>
+          <span className="text-2xl font-display font-bold text-accent tabular-nums">
+            {Math.abs(currentDepth).toFixed(2)}m
+          </span>
+        </div>
+        <div className="h-12 w-[1px] bg-white/20"></div>
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] text-white/40 font-mono tracking-widest">SECTOR</span>
+          <span className="text-sm font-display font-bold text-white uppercase tracking-widest">
+            {SEASON_METADATA[activeSection.id]?.label || 'UNKNOWN'}
+          </span>
+        </div>
+        <div className="h-12 w-[1px] bg-white/20"></div>
+        <div className="flex gap-3 mb-1">
+          {SECTIONS.map(s => {
+             const dist = Math.abs(currentDepth - s.depth);
+             const active = dist < 12;
+             return (
+              <div 
+                key={s.id} 
+                className={`w-2 h-2 rounded-full transition-all duration-500 ${active ? 'bg-accent scale-150 shadow-[0_0_15px_#00b4ff]' : 'bg-white/10 hover:bg-white/30'}`}
+                title={s.title}
+              />
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Bottom Status Bar */}
+      <div className="fixed bottom-8 right-8 z-50 flex items-center gap-4 text-white/40 font-mono text-[10px] tracking-widest pointer-events-auto">
+          <span className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div> FEED: SYNCED</span>
+          <span className="hidden sm:inline">2024_DEPLOYMENT_V2.0</span>
+      </div>
     </div>
   );
 };
