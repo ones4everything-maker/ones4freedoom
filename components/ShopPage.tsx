@@ -135,7 +135,7 @@ const ProductDetailModal: React.FC<{
     return (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={onClose} />
-            <div className="relative bg-[#0B0C15] w-full max-w-6xl h-[90vh] rounded-[3rem] overflow-hidden border border-white/10 flex flex-col md:flex-row shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-300">
+            <div className="relative bg-[#050A18] w-full max-w-6xl h-[90vh] rounded-[3rem] overflow-hidden border border-white/10 flex flex-col md:flex-row shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-300">
                 <button onClick={onClose} className="absolute top-6 right-6 z-50 p-3 bg-white/5 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-all">
                     <X size={24} />
                 </button>
@@ -244,7 +244,7 @@ const VirtualTryOnModal: React.FC<{
     return (
         <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
             <div className="fixed inset-0 bg-black/90 backdrop-blur-md" onClick={onClose} />
-            <div className="relative bg-[#0B0C15] w-full max-w-4xl h-[90vh] md:h-[80vh] rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.9)] flex flex-col animate-in fade-in zoom-in-95 duration-300">
+            <div className="relative bg-[#050A18] w-full max-w-4xl h-[90vh] md:h-[80vh] rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.9)] flex flex-col animate-in fade-in zoom-in-95 duration-300">
                 <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5 backdrop-blur-3xl">
                     <div className="flex items-center gap-4">
                         <Sparkles size={22} className="text-cyan-400" />
@@ -256,7 +256,7 @@ const VirtualTryOnModal: React.FC<{
                     <button onClick={onClose} className="p-2.5 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-all"><X size={26} /></button>
                 </div>
 
-                <div className="flex-grow flex flex-col overflow-hidden bg-[radial-gradient(circle_at_center,_#121421_0%,_#0B0C15_100%)]">
+                <div className="flex-grow flex flex-col overflow-hidden bg-[radial-gradient(circle_at_center,_#0F1729_0%,_#050A18_100%)]">
                     {mode === 'options' && (
                         <div className="flex-grow flex flex-col p-8 items-center justify-center space-y-10">
                             <div className="text-center space-y-3">
@@ -338,7 +338,7 @@ const SideMenu: React.FC<{ isOpen: boolean, onClose: () => void, onNavigate: any
     return (
         <div className="fixed inset-0 z-[150] flex">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
-            <div className="relative w-[60vw] bg-[#0B0C15]/95 backdrop-blur-3xl border-r border-white/10 h-full flex flex-col animate-in slide-in-from-left duration-500 shadow-2xl">
+            <div className="relative w-[60vw] bg-[#050A18]/95 backdrop-blur-3xl border-r border-white/10 h-full flex flex-col animate-in slide-in-from-left duration-500 shadow-2xl">
                 <div className="p-10 flex flex-col gap-1"><h1 className="text-3xl font-display font-black text-white tracking-[0.3em]">ONES4</h1><span className="text-[10px] font-mono text-cyan-400 tracking-[0.5em] uppercase">MENU</span></div>
                 <div className="flex flex-1 overflow-hidden">
                     <div className="w-1/2 border-r border-white/5 flex flex-col p-6 gap-2">
@@ -445,7 +445,7 @@ export const ShopPage: React.FC<{ onNavigate: (view: 'immersive' | 'shop') => vo
     };
 
     return (
-        <div className="min-h-screen bg-[#020408] text-white font-sans selection:bg-cyan-400 selection:text-black">
+        <div className="min-h-screen bg-[#050A18] text-white font-sans selection:bg-cyan-400 selection:text-black">
             <header className="fixed top-0 left-0 right-0 z-[100] bg-black/40 backdrop-blur-xl border-b border-white/5">
                 <div className="max-w-7xl mx-auto px-10 h-28 flex items-center justify-between">
                     <div className="flex items-center gap-10">
@@ -512,7 +512,7 @@ export const ShopPage: React.FC<{ onNavigate: (view: 'immersive' | 'shop') => vo
 
             <div className={`fixed bottom-10 right-10 z-[200] transition-all duration-500 ${isAiOpen ? 'w-96 h-[600px]' : 'w-20 h-20'}`}>
                 {isAiOpen ? (
-                    <div className="w-full h-full bg-[#0B0C15]/95 backdrop-blur-3xl border border-white/10 rounded-[3rem] shadow-2xl flex flex-col overflow-hidden">
+                    <div className="w-full h-full bg-[#050A18]/95 backdrop-blur-3xl border border-white/10 rounded-[3rem] shadow-2xl flex flex-col overflow-hidden">
                         <div className="p-8 border-b border-white/5 flex justify-between items-center bg-cyan-400/5"><div className="flex items-center gap-4"><Sparkles size={22} className="text-cyan-400" /><span className="text-xs font-black uppercase tracking-widest">Oracle Assistant</span></div><button onClick={() => setIsAiOpen(false)} className="text-white/20 hover:text-white"><X size={24} /></button></div>
                         <div className="flex-grow overflow-y-auto p-8 space-y-6 no-scrollbar">
                             {aiMessages.map((m, i) => (<div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[85%] p-5 rounded-[2rem] text-sm leading-relaxed ${m.role === 'user' ? 'bg-cyan-400 text-black font-bold' : 'bg-white/5 border border-white/5 text-white/70'}`}>{m.text}</div></div>))}
@@ -526,7 +526,7 @@ export const ShopPage: React.FC<{ onNavigate: (view: 'immersive' | 'shop') => vo
             {isCartOpen && (
                 <div className="fixed inset-0 z-[300]">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsCartOpen(false)} />
-                    <div className="absolute top-0 right-0 h-full w-full max-w-lg bg-[#0B0C15] border-l border-white/10 p-12 flex flex-col shadow-2xl animate-in slide-in-from-right duration-500">
+                    <div className="absolute top-0 right-0 h-full w-full max-w-lg bg-[#050A18] border-l border-white/10 p-12 flex flex-col shadow-2xl animate-in slide-in-from-right duration-500">
                         <div className="flex justify-between items-center mb-16"><h2 className="text-4xl font-display font-black tracking-tight uppercase">Cart</h2><button onClick={() => setIsCartOpen(false)} className="p-3 hover:bg-white/5 rounded-full"><X size={28} /></button></div>
                         <div className="flex-grow overflow-y-auto no-scrollbar space-y-8">{cart.length === 0 ? <p className="text-center opacity-20 uppercase tracking-[0.5em] py-20">No units deployed</p> : cart.map(item => (<div key={item.id} className="flex gap-8 group"><div className="w-28 h-28 rounded-3xl overflow-hidden border border-white/10"><img src={item.image} className="w-full h-full object-cover" /></div><div className="flex-grow flex flex-col justify-between py-2"><div><h4 className="text-lg font-bold uppercase tracking-widest">{item.name}</h4><span className="text-cyan-400 text-lg font-black">${item.price}</span></div><div className="flex items-center gap-6"><button onClick={() => setCart(prev => prev.map(i => i.id === item.id ? {...i, quantity: Math.max(1, i.quantity - 1)} : i))} className="text-white/30 hover:text-white"><Minus size={18} /></button><span className="text-sm font-mono">{item.quantity}</span><button onClick={() => setCart(prev => prev.map(i => i.id === item.id ? {...i, quantity: i.quantity + 1} : i))} className="text-white/30 hover:text-white"><Plus size={18} /></button></div></div><button onClick={() => setCart(prev => prev.filter(i => i.id !== item.id))} className="text-white/10 hover:text-red-400 self-center"><Trash2 size={24} /></button></div>))}</div>
                         <div className="pt-12 border-t border-white/5 space-y-8">

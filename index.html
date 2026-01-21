@@ -17,14 +17,29 @@
                     },
                     colors: {
                         dark: {
-                            900: '#0B0C15',
-                            800: '#151621',
-                            700: '#1E1F2E',
+                            900: '#050A18',
+                            800: '#0F1729',
+                            700: '#1E293B',
                         },
                         neon: {
                             purple: '#8B5CF6',
                             cyan: '#06B6D4',
                             orange: '#F97316',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'shimmer': 'shimmer 2.5s infinite linear',
+                        'glow': 'glow 2s infinite alternate',
+                    },
+                    keyframes: {
+                        shimmer: {
+                            '0%': { transform: 'translateX(-100%)' },
+                            '100%': { transform: 'translateX(200%)' }
+                        },
+                        glow: {
+                            'from': { boxShadow: '0 0 5px #06B6D4, 0 0 10px #06B6D4' },
+                            'to': { boxShadow: '0 0 15px #06B6D4, 0 0 30px #06B6D4' }
                         }
                     }
                 }
@@ -33,24 +48,47 @@
     </script>
     <style>
         body {
-            background-color: #0B0C15;
+            background-color: #050A18;
             color: #e2e8f0;
             overflow-x: hidden;
             margin: 0;
             padding: 0;
         }
-        .neon-text-cyan {
-            text-shadow: 0 0 10px rgba(6, 182, 212, 0.7), 0 0 20px rgba(6, 182, 212, 0.5);
+        .neon-glass {
+            background: rgba(6, 182, 212, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+            transition: all 0.3s ease;
         }
-        .neon-border-purple {
-            box-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
+        .neon-glass:hover {
+            background: rgba(6, 182, 212, 0.2);
+            border: 1px solid rgba(6, 182, 212, 0.6);
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.4);
+        }
+        .neon-glass-purple {
+            background: rgba(139, 92, 246, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
+            transition: all 0.3s ease;
+        }
+        .neon-glass-purple:hover {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.6);
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.4);
+        }
+        .shimmer-mask {
+            mask-image: linear-gradient(90deg, transparent, white, transparent);
+            mask-size: 50% 100%;
+            mask-repeat: no-repeat;
         }
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #0B0C15; 
+            background: #050A18; 
         }
         ::-webkit-scrollbar-thumb {
             background: #334155; 
@@ -58,13 +96,6 @@
         }
         ::-webkit-scrollbar-thumb:hover {
             background: #475569; 
-        }
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
         }
         .no-scrollbar::-webkit-scrollbar {
             display: none;

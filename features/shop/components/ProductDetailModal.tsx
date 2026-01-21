@@ -20,7 +20,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ item, is
     return (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={onClose} />
-            <div className="relative bg-[#0B0C15] w-full max-w-6xl h-[90vh] rounded-[3rem] overflow-hidden border border-white/10 flex flex-col md:flex-row shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-300">
+            <div className="relative bg-[#050A18] w-full max-w-6xl h-[90vh] rounded-[3rem] overflow-hidden border border-white/10 flex flex-col md:flex-row shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-300">
                 <button onClick={onClose} className="absolute top-6 right-6 z-50 p-3 bg-white/5 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-all">
                     <X size={24} />
                 </button>

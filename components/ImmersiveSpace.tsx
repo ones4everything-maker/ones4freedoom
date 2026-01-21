@@ -94,17 +94,17 @@ const EmberEffect = ({ active, speedMult }: { active: boolean; speedMult: number
   );
 };
 
-// --- Planet Component ---
+// --- Planet Component (Transparent Holographic Style) ---
 
 const Planet: React.FC<{ section: SectionConfig, opacity: number }> = ({ section, opacity }) => {
   const meshRef = useRef<THREE.Mesh>(null!);
   const ringRef = useRef<THREE.Mesh>(null!);
   
   useFrame((state) => {
-    meshRef.current.rotation.y += 0.005;
+    meshRef.current.rotation.y += 0.002;
     if (ringRef.current) {
-      ringRef.current.rotation.z += 0.01;
-      ringRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
+      ringRef.current.rotation.z -= 0.005;
+      ringRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.2) * 0.1;
     }
   });
 
@@ -112,28 +112,47 @@ const Planet: React.FC<{ section: SectionConfig, opacity: number }> = ({ section
 
   return (
     <group position={[isIntro ? 0 : (section.depth % 8 === 0 ? 12 : -12), isIntro ? 0 : 2, section.depth]}>
+      {/* Main Holographic Sphere */}
       <mesh ref={meshRef}>
         <sphereGeometry args={[section.planetSize, 64, 64]} />
-        <meshStandardMaterial 
+        <meshPhysicalMaterial 
           color={section.color}
           emissive={section.color}
-          emissiveIntensity={0.8 * opacity}
-          wireframe={!isIntro}
-          transparent
-          opacity={opacity * 0.9}
+          emissiveIntensity={0.2}
+          roughness={0.1}
+          metalness={0.1}
+          transparent={true}
+          opacity={0.15 * opacity} // Very transparent
+          side={THREE.DoubleSide}
+          depthWrite={false} // Helps with transparency layering
+          blending={THREE.AdditiveBlending}
         />
       </mesh>
       
+      {/* Inner Core Glow (optional, for depth) */}
+      <mesh scale={[0.95, 0.95, 0.95]}>
+        <sphereGeometry args={[section.planetSize, 32, 32]} />
+        <meshBasicMaterial 
+            color={section.color} 
+            transparent 
+            opacity={0.05 * opacity} 
+            blending={THREE.AdditiveBlending} 
+            depthWrite={false}
+        />
+      </mesh>
+
+      {/* Decorative Ring (Thinner, cleaner) */}
       {!isIntro && (
         <mesh ref={ringRef} rotation={[Math.PI / 2.5, 0, 0]}>
-          <torusGeometry args={[section.planetSize * 2.2, 0.015, 16, 250]} />
-          <meshBasicMaterial color={section.color} transparent opacity={opacity * 0.5} />
+          <torusGeometry args={[section.planetSize * 1.8, 0.02, 16, 100]} />
+          <meshBasicMaterial color={section.color} transparent opacity={0.4 * opacity} />
         </mesh>
       )}
 
+      {/* Rim Light Effect point */}
       <pointLight 
-        intensity={6 * opacity} 
-        distance={40} 
+        intensity={2 * opacity} 
+        distance={section.planetSize * 3} 
         color={section.color} 
       />
     </group>
@@ -149,9 +168,9 @@ const SceneEffects = ({ scrollY, onTransition }: { scrollY: number; onTransition
     state.camera.position.z += (targetZ - state.camera.position.z) * 0.1;
     
     // Smooth camera drift & rotation
-    state.camera.rotation.z = scrollY * 0.00005;
-    state.camera.position.x = Math.sin(state.clock.elapsedTime * 0.3) * 0.4;
-    state.camera.position.y = Math.cos(state.clock.elapsedTime * 0.3) * 0.3;
+    state.camera.rotation.z = scrollY * 0.00002;
+    state.camera.position.x = Math.sin(state.clock.elapsedTime * 0.2) * 0.2;
+    state.camera.position.y = Math.cos(state.clock.elapsedTime * 0.2) * 0.2;
 
     // Detect season boundaries for "flash"
     const boundaries = SECTIONS.map(s => s.depth);
@@ -165,11 +184,11 @@ const SceneEffects = ({ scrollY, onTransition }: { scrollY: number; onTransition
     }
     prevDepthRef.current = currentDepth;
 
-    // Dynamic Fog Color
-    let targetFogColor = new THREE.Color('#020408');
-    if (currentDepth < -20 && currentDepth > -60) targetFogColor.set('#0a1a1a'); // Stasis
-    if (currentDepth < -60 && currentDepth > -100) targetFogColor.set('#0a101a'); // Tech
-    if (currentDepth < -100) targetFogColor.set('#1a0a02'); // Legacy
+    // Dynamic Fog Color - Strictly Navy Blue Palette
+    let targetFogColor = new THREE.Color('#050A18'); // Deep Navy Base
+    if (currentDepth < -20 && currentDepth > -60) targetFogColor.set('#0a1124'); // Lighter Navy
+    if (currentDepth < -60 && currentDepth > -100) targetFogColor.set('#060b1f'); // Mid Navy
+    if (currentDepth < -100) targetFogColor.set('#040612'); // Deepest Navy
     
     state.scene.fog?.color.lerp(targetFogColor, 0.05);
   });
@@ -196,16 +215,18 @@ export const ImmersiveSpace: React.FC<{ scrollY: number }> = ({ scrollY }) => {
   const speedMult = isTransitioning ? 15 : 1;
 
   return (
-    <div className={`fixed inset-0 z-0 bg-[#020408] transition-colors duration-700 ${isTransitioning ? 'brightness-150' : ''}`}>
-      {/* Screen Glitch Overlay */}
-      <div className={`absolute inset-0 z-10 pointer-events-none transition-opacity duration-300 ${isTransitioning ? 'opacity-20' : 'opacity-0'}`}
-           style={{ background: 'radial-gradient(circle, #fff 0%, transparent 70%)' }} />
+    <div className={`fixed inset-0 z-0 bg-[#050A18] transition-colors duration-700 ${isTransitioning ? 'brightness-125' : ''}`}>
+      {/* Background Gradient to ensure no pure black corners */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#050A18] via-[#080E24] to-[#050A18] opacity-80 z-0" />
 
       <Canvas camera={{ position: [0, 0, 5], fov: 60 }} dpr={[1, 2]}>
-        <ambientLight intensity={0.6} />
-        <fog attach="fog" args={['#020408', 2, 45]} />
+        <ambientLight intensity={0.4} />
+        {/* Directional light to hit the transparent spheres */}
+        <directionalLight position={[10, 10, 5]} intensity={1} color="#4fa3ff" />
         
-        <Stars radius={200} depth={60} count={8000} factor={4} saturation={0} fade speed={2} />
+        <fog attach="fog" args={['#050A18', 5, 50]} />
+        
+        <Stars radius={200} depth={60} count={10000} factor={4} saturation={0} fade speed={1} />
         
         {/* Environmental Season Effects */}
         <SnowEffect active={isWinterActive} speedMult={speedMult} />

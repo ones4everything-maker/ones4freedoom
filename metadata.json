@@ -2,6 +2,7 @@
   "name": "ONES4 Storefront",
   "description": "A headless WooCommerce React storefront with an immersive 3D scroll experience.",
   "requestFramePermissions": [
-    "camera"
+    "camera",
+    "microphone"
   ]
 }
