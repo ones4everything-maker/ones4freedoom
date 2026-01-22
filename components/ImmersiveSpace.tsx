@@ -3,8 +3,46 @@ import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Stars, Points, PointMaterial } from '@react-three/drei';
 import * as THREE from 'three';
-import { SECTIONS, SCROLL_TO_DEPTH_RATIO } from '../constants';
+import { SECTIONS, SCROLL_TO_DEPTH_RATIO, TOTAL_SCROLL_HEIGHT } from '../constants';
 import { SectionConfig } from '../types';
+
+// --- Color Utilities ---
+
+const hexToRgb = (hex: string) => {
+  const bigint = parseInt(hex.replace('#', ''), 16);
+  return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
+};
+
+const lerp = (start: number, end: number, t: number) => start * (1 - t) + end * t;
+
+const rgbToHex = (r: number, g: number, b: number) => 
+  "#" + [r, g, b].map(x => Math.max(0, Math.min(255, Math.round(x))).toString(16).padStart(2, '0')).join('');
+
+const interpolateColor = (progress: number) => {
+  const p = Math.min(Math.max(progress, 0), 1);
+  
+  const stops = [
+    { pos: 0.00, color: '#1E2A3A' }, // Spring night
+    { pos: 0.25, color: '#0F1C2E' }, // Summer night
+    { pos: 0.50, color: '#2A1F2D' }, // Fall night
+    { pos: 0.75, color: '#0A1423' }, // Winter night
+    { pos: 1.00, color: '#050A12' }  // Deep Winter
+  ];
+
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (p >= stops[i].pos && p <= stops[i + 1].pos) {
+      const t = (p - stops[i].pos) / (stops[i + 1].pos - stops[i].pos);
+      const c1 = hexToRgb(stops[i].color);
+      const c2 = hexToRgb(stops[i + 1].color);
+      return rgbToHex(
+        lerp(c1[0], c2[0], t),
+        lerp(c1[1], c2[1], t),
+        lerp(c1[2], c2[2], t)
+      );
+    }
+  }
+  return stops[stops.length - 1].color;
+};
 
 // --- Particle Effects Components ---
 
@@ -31,7 +69,7 @@ const SnowEffect = ({ active, speedMult }: { active: boolean; speedMult: number 
   return (
     <group visible={active}>
       <Points ref={ref} positions={points} stride={3}>
-        <PointMaterial transparent color="#ffffff" size={0.08} sizeAttenuation={true} depthWrite={false} opacity={0.5} />
+        <PointMaterial transparent color="#EDEFF5" size={0.08} sizeAttenuation={true} depthWrite={false} opacity={0.3} />
       </Points>
     </group>
   );
@@ -60,7 +98,7 @@ const TechDataEffect = ({ active, speedMult }: { active: boolean; speedMult: num
   return (
     <group visible={active}>
       <Points ref={ref} positions={points} stride={3}>
-        <PointMaterial transparent color="#00f3ff" size={0.05} sizeAttenuation={true} depthWrite={false} opacity={0.7} />
+        <PointMaterial transparent color="#5F84C6" size={0.05} sizeAttenuation={true} depthWrite={false} opacity={0.6} />
       </Points>
     </group>
   );
@@ -88,78 +126,79 @@ const EmberEffect = ({ active, speedMult }: { active: boolean; speedMult: number
   return (
     <group visible={active}>
       <Points ref={ref} positions={points} stride={3}>
-        <PointMaterial transparent color="#ff4000" size={0.15} sizeAttenuation={true} depthWrite={false} opacity={0.4} />
+        <PointMaterial transparent color="#9FB3D9" size={0.12} sizeAttenuation={true} depthWrite={false} opacity={0.4} />
       </Points>
     </group>
   );
 };
 
-// --- Planet Component (Transparent Holographic Style) ---
+// --- Planet Component (Soft Glow Style) ---
 
 const Planet: React.FC<{ section: SectionConfig, opacity: number }> = ({ section, opacity }) => {
   const meshRef = useRef<THREE.Mesh>(null!);
   const ringRef = useRef<THREE.Mesh>(null!);
   
   useFrame((state) => {
-    meshRef.current.rotation.y += 0.002;
+    meshRef.current.rotation.y += 0.001;
     if (ringRef.current) {
-      ringRef.current.rotation.z -= 0.005;
-      ringRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.2) * 0.1;
+      ringRef.current.rotation.z -= 0.002;
+      ringRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.1) * 0.05;
     }
   });
 
   const isIntro = section.id === 'origin';
+  const planetColor = new THREE.Color(section.id === 'archive' ? '#6B7280' : '#48689D');
 
   return (
     <group position={[isIntro ? 0 : (section.depth % 8 === 0 ? 12 : -12), isIntro ? 0 : 2, section.depth]}>
-      {/* Main Holographic Sphere */}
+      {/* Main Soft Glow Sphere */}
       <mesh ref={meshRef}>
         <sphereGeometry args={[section.planetSize, 64, 64]} />
         <meshPhysicalMaterial 
-          color={section.color}
-          emissive={section.color}
-          emissiveIntensity={0.2}
-          roughness={0.1}
-          metalness={0.1}
+          color={planetColor}
+          emissive={planetColor}
+          emissiveIntensity={0.15}
+          roughness={0.4}
+          metalness={0.2}
           transparent={true}
-          opacity={0.15 * opacity} // Very transparent
+          opacity={0.3 * opacity}
           side={THREE.DoubleSide}
-          depthWrite={false} // Helps with transparency layering
+          depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
       </mesh>
       
-      {/* Inner Core Glow (optional, for depth) */}
-      <mesh scale={[0.95, 0.95, 0.95]}>
-        <sphereGeometry args={[section.planetSize, 32, 32]} />
+      {/* Inner Rim Highlight */}
+      <mesh scale={[0.98, 0.98, 0.98]}>
+        <sphereGeometry args={[section.planetSize, 64, 64]} />
         <meshBasicMaterial 
-            color={section.color} 
+            color="#5F84C6"
             transparent 
-            opacity={0.05 * opacity} 
+            opacity={0.1 * opacity} 
             blending={THREE.AdditiveBlending} 
-            depthWrite={false}
+            side={THREE.BackSide}
         />
       </mesh>
 
-      {/* Decorative Ring (Thinner, cleaner) */}
+      {/* Decorative Ring (Subtle) */}
       {!isIntro && (
         <mesh ref={ringRef} rotation={[Math.PI / 2.5, 0, 0]}>
-          <torusGeometry args={[section.planetSize * 1.8, 0.02, 16, 100]} />
-          <meshBasicMaterial color={section.color} transparent opacity={0.4 * opacity} />
+          <torusGeometry args={[section.planetSize * 1.8, 0.02, 32, 100]} />
+          <meshBasicMaterial color="#5F84C6" transparent opacity={0.3 * opacity} />
         </mesh>
       )}
 
-      {/* Rim Light Effect point */}
+      {/* Diffuse Light */}
       <pointLight 
-        intensity={2 * opacity} 
-        distance={section.planetSize * 3} 
-        color={section.color} 
+        intensity={1.5 * opacity} 
+        distance={section.planetSize * 5} 
+        color="#5F84C6" 
       />
     </group>
   );
 };
 
-const SceneEffects = ({ scrollY, onTransition }: { scrollY: number; onTransition: (active: boolean) => void }) => {
+const SceneEffects = ({ scrollY, targetColor, onTransition }: { scrollY: number; targetColor: string; onTransition: (active: boolean) => void }) => {
   const currentDepth = -scrollY * SCROLL_TO_DEPTH_RATIO;
   const prevDepthRef = useRef(currentDepth);
   
@@ -167,12 +206,12 @@ const SceneEffects = ({ scrollY, onTransition }: { scrollY: number; onTransition
     const targetZ = 5 + currentDepth;
     state.camera.position.z += (targetZ - state.camera.position.z) * 0.1;
     
-    // Smooth camera drift & rotation
-    state.camera.rotation.z = scrollY * 0.00002;
-    state.camera.position.x = Math.sin(state.clock.elapsedTime * 0.2) * 0.2;
-    state.camera.position.y = Math.cos(state.clock.elapsedTime * 0.2) * 0.2;
+    // Cinematic camera drift
+    state.camera.rotation.z = scrollY * 0.00001;
+    state.camera.position.x = Math.sin(state.clock.elapsedTime * 0.1) * 0.1;
+    state.camera.position.y = Math.cos(state.clock.elapsedTime * 0.1) * 0.1;
 
-    // Detect season boundaries for "flash"
+    // Detect season boundaries
     const boundaries = SECTIONS.map(s => s.depth);
     const crossed = boundaries.some(b => 
       (prevDepthRef.current > b && currentDepth <= b) || 
@@ -184,13 +223,9 @@ const SceneEffects = ({ scrollY, onTransition }: { scrollY: number; onTransition
     }
     prevDepthRef.current = currentDepth;
 
-    // Dynamic Fog Color - Strictly Navy Blue Palette
-    let targetFogColor = new THREE.Color('#050A18'); // Deep Navy Base
-    if (currentDepth < -20 && currentDepth > -60) targetFogColor.set('#0a1124'); // Lighter Navy
-    if (currentDepth < -60 && currentDepth > -100) targetFogColor.set('#060b1f'); // Mid Navy
-    if (currentDepth < -100) targetFogColor.set('#040612'); // Deepest Navy
-    
-    state.scene.fog?.color.lerp(targetFogColor, 0.05);
+    // Update fog to match seasonal background
+    const targetFog = new THREE.Color(targetColor);
+    state.scene.fog?.color.lerp(targetFog, 0.05);
   });
 
   return null;
@@ -200,6 +235,14 @@ export const ImmersiveSpace: React.FC<{ scrollY: number }> = ({ scrollY }) => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const currentDepth = -scrollY * SCROLL_TO_DEPTH_RATIO;
   
+  // Calculate scroll progress (0 to 1)
+  const progress = Math.min(Math.max(scrollY / TOTAL_SCROLL_HEIGHT, 0), 1);
+  const bgColor = interpolateColor(progress);
+  
+  // Dynamic star settings based on season
+  // Factor increases from 4 (Spring) to 6 (Winter) for more intensity
+  const starFactor = 4 + (progress * 2);
+
   useEffect(() => {
     if (isTransitioning) {
       const timer = setTimeout(() => setIsTransitioning(false), 800);
@@ -211,24 +254,62 @@ export const ImmersiveSpace: React.FC<{ scrollY: number }> = ({ scrollY }) => {
   const isTechActive = currentDepth < -50 && currentDepth > -110;
   const isLegacyActive = currentDepth < -90;
 
-  // Warp speed effect during transitions
-  const speedMult = isTransitioning ? 15 : 1;
+  const speedMult = isTransitioning ? 8 : 0.5;
+
+  // Calculate a slightly lighter version of bg color for the gradient center
+  const centerColor = useMemo(() => {
+    const rgb = hexToRgb(bgColor);
+    // Lighten by ~20% for center glow
+    const lighter = rgb.map(c => Math.min(255, c + 30)); 
+    return rgbToHex(lighter[0], lighter[1], lighter[2]);
+  }, [bgColor]);
 
   return (
-    <div className={`fixed inset-0 z-0 bg-[#050A18] transition-colors duration-700 ${isTransitioning ? 'brightness-125' : ''}`}>
-      {/* Background Gradient to ensure no pure black corners */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#050A18] via-[#080E24] to-[#050A18] opacity-80 z-0" />
+    <div 
+        className="fixed inset-0 z-0 transition-colors duration-1000 overflow-hidden"
+        style={{ backgroundColor: bgColor }}
+    >
+      {/* --- Hero Background Effects --- */}
+      
+      {/* 1. Large Top Gradient Glow - Dynamic Color */}
+      <div 
+        className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[120vw] h-[80vh] opacity-70 pointer-events-none z-0 transition-colors duration-1000" 
+        style={{
+            background: `radial-gradient(ellipse at center, ${centerColor} 0%, ${bgColor} 60%, transparent 100%)`
+        }}
+      />
 
-      <Canvas camera={{ position: [0, 0, 5], fov: 60 }} dpr={[1, 2]}>
-        <ambientLight intensity={0.4} />
-        {/* Directional light to hit the transparent spheres */}
-        <directionalLight position={[10, 10, 5]} intensity={1} color="#4fa3ff" />
+      {/* 2. Asymmetric Color Bleeds for Atmosphere */}
+      <div className="absolute top-[-10%] right-[-5%] w-[50vw] h-[50vw] bg-[#5F84C6] rounded-full mix-blend-screen opacity-[0.04] blur-[120px] pointer-events-none z-0 animate-pulse-slow" />
+      <div className="absolute top-[10%] left-[-10%] w-[40vw] h-[40vw] bg-[#48689D] rounded-full mix-blend-screen opacity-[0.04] blur-[100px] pointer-events-none z-0 animate-pulse-slow" style={{ animationDelay: '1s' }} />
+
+      {/* 3. Subtle Grid Pattern Overlay */}
+      <div 
+        className="absolute inset-0 pointer-events-none z-0 opacity-[0.03]" 
+        style={{
+            backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px)`,
+            backgroundSize: '100px 100px',
+            maskImage: 'linear-gradient(to bottom, white 0%, transparent 60%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, white 0%, transparent 60%)'
+        }} 
+      />
+
+      {/* Subtle gradient overlay to soften bottom */}
+      <div 
+        className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent pointer-events-none z-0" 
+        style={{ '--tw-gradient-to': `${bgColor}E6` } as React.CSSProperties} // 90% opacity hex
+      />
+
+      <Canvas camera={{ position: [0, 0, 5], fov: 55 }} dpr={[1, 2]}>
+        <ambientLight intensity={0.2} color="#9FB3D9" />
+        <directionalLight position={[10, 10, 5]} intensity={0.8} color="#EDEFF5" />
         
-        <fog attach="fog" args={['#050A18', 5, 50]} />
+        {/* Fog is updated via SceneEffects */}
+        <fog attach="fog" args={[bgColor, 5, 45]} />
         
-        <Stars radius={200} depth={60} count={10000} factor={4} saturation={0} fade speed={1} />
+        {/* Star Field: Sparse, fine white-to-blue dots */}
+        <Stars radius={200} depth={50} count={3000} factor={starFactor} saturation={0} fade speed={0.5} />
         
-        {/* Environmental Season Effects */}
         <SnowEffect active={isWinterActive} speedMult={speedMult} />
         <TechDataEffect active={isTechActive} speedMult={speedMult} />
         <EmberEffect active={isLegacyActive} speedMult={speedMult} />
@@ -239,7 +320,7 @@ export const ImmersiveSpace: React.FC<{ scrollY: number }> = ({ scrollY }) => {
           return <Planet key={section.id} section={section} opacity={opacity} />;
         })}
 
-        <SceneEffects scrollY={scrollY} onTransition={setIsTransitioning} />
+        <SceneEffects scrollY={scrollY} targetColor={bgColor} onTransition={setIsTransitioning} />
       </Canvas>
     </div>
   );

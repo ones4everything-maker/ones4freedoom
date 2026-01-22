@@ -5,30 +5,35 @@ import { SectionConfig, ShopifyProduct } from '../types';
 import { fetchCollectionProducts } from '../services/shopifyService';
 import { ShoppingBag, ChevronRight, Zap } from 'lucide-react';
 
-const ProductStrip: React.FC<{ product: ShopifyProduct }> = ({ product }) => (
-  <div className="group relative w-full bg-[#050A18]/60 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden hover:border-cyan-400/50 transition-all duration-500 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
-    <div className="aspect-[3/4] overflow-hidden bg-[#0F1729]/50">
+const ProductStrip: React.FC<{ product: ShopifyProduct; onNavigate?: (view: 'immersive' | 'shop') => void }> = ({ product, onNavigate }) => (
+  <div 
+    onClick={() => onNavigate?.('shop')}
+    className="group relative w-full bg-[#151926]/70 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden hover:border-[#5F84C6]/50 transition-all duration-500 hover:scale-[1.02] shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:shadow-[0_0_25px_rgba(72,104,157,0.25)] cursor-pointer pointer-events-auto"
+  >
+    <div className="aspect-[3/4] overflow-hidden bg-[#151926]/50 relative">
       <img 
         src={product.images.edges[0]?.node.url} 
         alt={product.title} 
-        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
       />
+      {/* Subtle shine effect on hover */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
     </div>
-    <div className="p-4 flex justify-between items-end bg-gradient-to-t from-[#050A18] to-transparent">
+    <div className="p-4 flex justify-between items-end bg-gradient-to-t from-[#0D101B] to-transparent">
       <div>
-        <h4 className="text-white font-display text-sm font-bold tracking-widest">{product.title}</h4>
-        <p className="text-cyan-400 text-xs mt-1 font-mono">
+        <h4 className="text-white font-display text-sm font-bold tracking-widest truncate max-w-[120px]">{product.title}</h4>
+        <p className="text-[#9FB3D9] text-xs mt-1 font-mono">
           {product.priceRange.minVariantPrice.amount} {product.priceRange.minVariantPrice.currencyCode}
         </p>
       </div>
-      <button className="p-2 bg-cyan-400/10 rounded-full text-cyan-400 hover:bg-cyan-400 hover:text-black transition-colors border border-cyan-400/20">
+      <button className="p-2 bg-[#5F84C6]/10 rounded-full text-[#5F84C6] hover:bg-[#5F84C6] hover:text-black transition-colors border border-[#5F84C6]/20 active:scale-90">
         <ShoppingBag size={16} />
       </button>
     </div>
   </div>
 );
 
-const OrbitalSection: React.FC<{ section: SectionConfig, isActive: boolean, distance: number }> = ({ section, isActive, distance }) => {
+const OrbitalSection: React.FC<{ section: SectionConfig, isActive: boolean, distance: number, onNavigate?: (view: 'immersive' | 'shop') => void }> = ({ section, isActive, distance, onNavigate }) => {
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
   const opacity = Math.max(0, 1 - Math.abs(distance) / 25);
 
@@ -42,29 +47,40 @@ const OrbitalSection: React.FC<{ section: SectionConfig, isActive: boolean, dist
 
   return (
     <div 
-      className="absolute inset-0 flex flex-col items-center justify-center p-6"
+      className="absolute inset-0 flex flex-col items-center justify-center p-6 pb-32"
       style={{ opacity, transform: `translateY(${distance * 3}px)` }}
     >
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <div>
-          <h2 className="text-6xl md:text-9xl font-display font-black text-white leading-none mb-6 tracking-tighter drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+          <h2 className="text-6xl md:text-9xl font-display font-black text-white leading-none mb-6 tracking-tighter drop-shadow-[0_0_20px_rgba(72,104,157,0.3)]">
             {section.title}
           </h2>
-          <p className="text-blue-100/70 text-lg leading-relaxed max-w-md mb-10 font-light">
+          <p className="text-[#9FB3D9] text-lg leading-relaxed max-w-md mb-10 font-light">
             {section.description}
           </p>
           
-          {/* Styled Button matching the reference */}
-          <button className="group flex items-center gap-4 px-8 py-4 bg-transparent border border-cyan-500/30 text-white font-display font-bold text-xs tracking-[0.2em] hover:bg-cyan-500/10 hover:border-cyan-400/60 transition-all shadow-[0_0_20px_rgba(6,182,212,0.1)] hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] rounded-sm">
-            SCAN COLLECTION <ChevronRight size={16} className="text-cyan-400 group-hover:translate-x-1 transition-transform" />
+          {/* Luxury 3D Button */}
+          <button 
+            onClick={() => onNavigate?.('shop')}
+            className="group relative px-8 py-5 bg-gradient-to-br from-white/10 to-transparent backdrop-blur-md text-white font-display font-bold text-xs tracking-[0.25em] transition-all duration-300 transform hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] border-t border-l border-white/20 border-r border-b border-black/20 rounded-xl overflow-hidden active:translate-y-0 active:shadow-none cursor-pointer pointer-events-auto"
+          >
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#5F84C6]/0 via-[#5F84C6]/10 to-[#5F84C6]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#5F84C6] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+            
+            <span className="relative z-10 flex items-center gap-4 group-hover:text-[#5F84C6] transition-colors">
+                SCAN COLLECTION 
+                <div className="p-1 rounded-full bg-white/5 border border-white/10 group-hover:border-[#5F84C6]/50 transition-colors">
+                    <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                </div>
+            </span>
           </button>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          {products.slice(0, 4).map(p => <ProductStrip key={p.id} product={p} />)}
+          {products.slice(0, 4).map(p => <ProductStrip key={p.id} product={p} onNavigate={onNavigate} />)}
           {products.length === 0 && (
-             <div className="col-span-2 flex flex-col items-center justify-center py-20 bg-[#050A18]/40 border border-white/10 rounded-xl border-dashed backdrop-blur-sm">
-                <div className="animate-spin mb-4 text-cyan-400"><Zap size={24} /></div>
+             <div className="col-span-2 flex flex-col items-center justify-center py-20 bg-[#0D101B]/40 border border-white/10 rounded-xl border-dashed backdrop-blur-sm pointer-events-auto">
+                <div className="animate-spin mb-4 text-[#5F84C6]"><Zap size={24} /></div>
                 <span className="text-xs font-mono text-white/40 tracking-widest uppercase">Initializing Inventory Feed...</span>
              </div>
           )}
@@ -74,16 +90,22 @@ const OrbitalSection: React.FC<{ section: SectionConfig, isActive: boolean, dist
   );
 };
 
-export const ContentLayer: React.FC<{ scrollY: number }> = ({ scrollY }) => {
+export const ContentLayer: React.FC<{ scrollY: number; onNavigate?: (view: 'immersive' | 'shop') => void }> = ({ scrollY, onNavigate }) => {
   const currentDepth = -scrollY * SCROLL_TO_DEPTH_RATIO;
   
   return (
     <div className="fixed inset-0 pointer-events-none">
-      {/* Intro Overlay */}
-      <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-1000 ${scrollY > 150 ? 'opacity-0' : 'opacity-100'}`}>
-        <div className="text-center">
-          <h1 className="text-[12vw] font-display font-black text-white leading-none opacity-10 select-none tracking-tighter">ONES4</h1>
-          <p className="text-cyan-400 tracking-[1.5em] text-xs font-bold uppercase mt-8 animate-pulse drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]">Orbital Camp</p>
+      {/* Intro Overlay - Scroll to Explore */}
+      <div className={`absolute inset-0 flex items-end justify-center pb-8 transition-all duration-1000 z-50 ${scrollY > 50 ? 'opacity-0 translate-y-[20px]' : 'opacity-100'}`}>
+        <div className="text-center flex flex-col items-center gap-4">
+          <h1 className="text-5xl md:text-7xl font-serif text-white tracking-tight drop-shadow-2xl">
+            Scroll to Explore
+          </h1>
+          <div className="animate-bounce mt-2">
+             <svg width="24" height="64" viewBox="0 0 24 64" fill="none" className="text-[#EDEFF5] opacity-80">
+                <path d="M12 0V60M12 60L4 50M12 60L20 50" stroke="currentColor" strokeWidth="1" />
+             </svg>
+          </div>
         </div>
       </div>
 
@@ -96,6 +118,7 @@ export const ContentLayer: React.FC<{ scrollY: number }> = ({ scrollY }) => {
             section={section} 
             isActive={isActive} 
             distance={distance} 
+            onNavigate={onNavigate}
           />
         );
       })}

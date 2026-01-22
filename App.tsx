@@ -26,10 +26,10 @@ function App() {
   }
 
   return (
-    <div className="relative min-h-screen font-sans text-white bg-[#050A18] selection:bg-cyan-400 selection:text-black">
-      <Navigation onNavigate={(view) => setCurrentView(view)} />
+    <div className="relative min-h-screen font-sans text-[#EDEFF5] bg-[#072B75] selection:bg-[#5F84C6] selection:text-black">
+      <Navigation onNavigate={(view) => setCurrentView(view)} scrollY={scrollY} />
       <ImmersiveSpace scrollY={scrollY} />
-      <ContentLayer scrollY={scrollY} />
+      <ContentLayer scrollY={scrollY} onNavigate={(view) => setCurrentView(view)} />
       <div style={{ height: `${TOTAL_SCROLL_HEIGHT}px` }} className="w-full pointer-events-none"></div>
     </div>
   );
