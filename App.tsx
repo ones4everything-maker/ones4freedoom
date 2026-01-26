@@ -26,7 +26,7 @@ function App() {
   }
 
   return (
-    <div className="relative min-h-screen font-sans text-[#EDEFF5] bg-[#072B75] selection:bg-[#5F84C6] selection:text-black">
+    <div className="relative min-h-screen font-sans text-[#EDEFF5] bg-[#001B49] selection:bg-[#5F84C6] selection:text-black">
       <Navigation onNavigate={(view) => setCurrentView(view)} scrollY={scrollY} />
       <ImmersiveSpace scrollY={scrollY} />
       <ContentLayer scrollY={scrollY} onNavigate={(view) => setCurrentView(view)} />

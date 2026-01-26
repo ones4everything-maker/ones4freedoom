@@ -19,10 +19,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   };
 
   return (
-    <div className="group relative bg-[#050A18]/80 md:bg-[#050A18]/60 border border-white/5 hover:border-cyan-400/50 rounded-xl overflow-hidden backdrop-blur-md transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(6,182,212,0.15)] flex flex-col h-full">
+    <div className="group relative bg-[#001B49]/80 md:bg-[#001B49]/60 border border-white/5 hover:border-cyan-400/50 rounded-xl overflow-hidden backdrop-blur-md transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(6,182,212,0.15)] flex flex-col h-full">
       {/* Image Container */}
       <div className="aspect-square relative overflow-hidden bg-[#0F1729]/50">
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050A18] via-transparent to-transparent z-10 opacity-70"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#001B49] via-transparent to-transparent z-10 opacity-70"></div>
         <img 
           src={product.images[0]?.src} 
           alt={product.images[0]?.alt || product.name}
@@ -68,7 +68,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             onClick={handleAddToCart}
             className={`
                 relative p-3 sm:p-2 rounded-full transition-all duration-300 border overflow-hidden
-                focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-[#050A18]
+                focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-[#001B49]
                 ${isAdded 
                     ? 'bg-cyan-400 border-cyan-400 text-black scale-105 shadow-[0_0_15px_rgba(6,182,212,0.5)]' 
                     : 'bg-white/5 border-white/10 text-white hover:bg-cyan-400 hover:text-black hover:border-cyan-400 active:scale-95'

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,24 +17,14 @@
                         serif: ['"Playfair Display"', 'serif'],
                     },
                     colors: {
-                        dark: {
-                            900: '#072B75', // Updated Base Background
-                            800: '#0A3685', // Updated Card Surface
-                            700: '#1F2436', // Hover Surface
+                        ones4: {
+                            bg: '#07163D',       // Deep Midnight
+                            cardTop: '#021959',  // Lighter Navy Gradient Start
+                            cardBot: '#07163D',  // Deep Navy Gradient End
+                            accent: '#00FFD1',   // Cyan/Aqua
+                            text: '#FFFFFF',     // Primary Text
+                            muted: '#9AA4B2',    // Secondary Text
                         },
-                        cosmic: {
-                            100: '#EDEFF5', // Star White
-                            300: '#9FB3D9', // Star Blue
-                            500: '#5F84C6', // Inner Rim (Highlight)
-                            600: '#48689D', // Mid Glow (Primary)
-                            900: '#072B75', // Updated Void
-                        },
-                        // Mapping legacy neon to new palette for compatibility
-                        neon: {
-                            purple: '#5F84C6',
-                            cyan: '#5F84C6', // Mapped to Inner Rim
-                            orange: '#F97316',
-                        }
                     },
                     animation: {
                         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -56,42 +47,43 @@
     </script>
     <style>
         body {
-            background-color: #072B75;
-            color: #EDEFF5;
+            background-color: #07163D;
+            color: #FFFFFF;
             overflow-x: hidden;
             margin: 0;
             padding: 0;
         }
-        .neon-glass {
-            background: rgba(72, 104, 157, 0.1);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(95, 132, 198, 0.3);
-            box-shadow: 0 0 15px rgba(72, 104, 157, 0.2);
-            transition: all 0.3s ease;
+        
+        /* Atmospheric Background Utilities */
+        .bg-ones4-atmosphere {
+            background-color: #07163D;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(0, 255, 209, 0.12) 0%, transparent 60%),
+                radial-gradient(circle at 85% 30%, rgba(2, 25, 89, 0.4) 0%, transparent 50%),
+                linear-gradient(to bottom, #07163D, #050A18);
         }
-        .neon-glass:hover {
-            background: rgba(72, 104, 157, 0.2);
-            border: 1px solid rgba(95, 132, 198, 0.6);
-            box-shadow: 0 0 25px rgba(72, 104, 157, 0.4);
+
+        .bg-glass-panel {
+            background: rgba(2, 25, 89, 0.4);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 255, 209, 0.15);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
-        .shimmer-mask {
-            mask-image: linear-gradient(90deg, transparent, white, transparent);
-            mask-size: 50% 100%;
-            mask-repeat: no-repeat;
-        }
+
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #072B75; 
+            background: #07163D; 
         }
         ::-webkit-scrollbar-thumb {
-            background: #1F2436; 
+            background: #021959; 
             border-radius: 4px;
+            border: 1px solid #00FFD1;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #48689D; 
+            background: #00FFD1; 
         }
         .no-scrollbar::-webkit-scrollbar {
             display: none;
@@ -99,6 +91,13 @@
         .no-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
+        }
+
+        /* Readability & Variables */
+        :root{
+          --foreground: 0 0% 100%;
+          --muted-foreground: 215 13% 65%;
+          --neon-cyan: 169 100% 50%;
         }
     </style>
 <script type="importmap">

@@ -76,6 +76,10 @@ export const fetchAllShopifyProducts = async (): Promise<ProductItem[]> => {
         if (node.tags.includes('theme:purple')) theme = 'purple';
         if (node.tags.includes('theme:orange')) theme = 'orange';
 
+        // Customization Logic
+        const customize = node.tags.includes('customize');
+        const subli = node.tags.includes('subli');
+
         // Map Colors from variant options
         const colors = new Set<string>();
         node.variants.edges.forEach((v: any) => {
@@ -142,7 +146,9 @@ export const fetchAllShopifyProducts = async (): Promise<ProductItem[]> => {
             features,
             reviews: [], // Shopify Storefront API doesn't support reviews natively without extensions
             availableForSale: node.availableForSale,
-            totalInventory: node.totalInventory || 10 // Default if inventory hidden
+            totalInventory: node.totalInventory || 10,
+            customize,
+            subli
         };
     });
 

@@ -23,6 +23,14 @@ export interface Spec {
     value: string;
 }
 
+export interface CustomizationOptions {
+    method: 'vinyl' | 'sublimation';
+    isPremium: boolean;
+    size: 'small' | 'medium';
+    text: string;
+    price: number;
+}
+
 export interface ProductItem {
     id: string;
     name: string;
@@ -42,6 +50,9 @@ export interface ProductItem {
     reviews: Review[];
     availableForSale: boolean;
     totalInventory: number;
+    customize?: boolean;
+    subli?: boolean;
+    selectedCustomization?: CustomizationOptions;
 }
 
 const MOCK_REVIEWS: Review[] = [
@@ -60,7 +71,7 @@ export const PRODUCTS: ProductItem[] = [
              'https://images.unsplash.com/photo-1503341455253-b2e72333dbdb?auto=format&fit=crop&q=80&w=800'
         ],
         theme: 'cyan',
-        tags: ['Tactical', 'Training', 'Breathable'],
+        tags: ['Tactical', 'Training', 'Breathable', 'customize'],
         category: 'tops',
         sku: 'CT-2024-001',
         description: 'Premium tactical camo tank top designed for maximum mobility and style. Features advanced moisture-wicking fabric and reinforced stitching. Perfect for intense workouts or casual streetwear.',
@@ -83,7 +94,9 @@ export const PRODUCTS: ProductItem[] = [
         ],
         reviews: MOCK_REVIEWS,
         availableForSale: true,
-        totalInventory: 42
+        totalInventory: 42,
+        customize: true,
+        subli: true
     },
     {
         id: 'h1',
@@ -91,7 +104,7 @@ export const PRODUCTS: ProductItem[] = [
         price: 120.00,
         image: 'https://images.unsplash.com/photo-1551488852-080175b21631?auto=format&fit=crop&q=80&w=800',
         theme: 'purple',
-        tags: ['Streetwear', 'Heavyweight', 'Cotton'],
+        tags: ['Streetwear', 'Heavyweight', 'Cotton', 'customize'],
         category: 'hoodies',
         sku: 'UH-2025-X',
         description: 'Premium heavyweight cotton blend with a relaxed drop-shoulder fit. Engineered for comfort and style in high-density urban environments.',
@@ -108,7 +121,9 @@ export const PRODUCTS: ProductItem[] = [
         ],
         reviews: [],
         availableForSale: true,
-        totalInventory: 15
+        totalInventory: 15,
+        customize: true,
+        subli: false
     },
     {
         id: 'j1',
@@ -133,6 +148,7 @@ export const PRODUCTS: ProductItem[] = [
         ],
         reviews: [],
         availableForSale: true,
-        totalInventory: 8
+        totalInventory: 8,
+        customize: false
     }
 ];

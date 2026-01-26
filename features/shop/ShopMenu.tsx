@@ -2,14 +2,24 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { 
-    Search, ShoppingBag, Loader2, Send, Sparkles, X, Trash2, Minus, Plus, Mic, SlidersHorizontal, Menu as MenuIcon, User, Clock, Home
+    Search, ShoppingBag, Loader2, Send, Sparkles, X, Trash2, Minus, Plus, Mic, SlidersHorizontal, Menu as MenuIcon, User, Clock, Home, Zap, Type, Filter, ArrowUpDown
 } from 'lucide-react';
 import { ProductItem, PRODUCTS } from './data/products';
 import { CategoryTabs } from './components/CategoryTabs';
 import { ProductCard } from './components/ProductCard';
-import { ProductDetailModal } from './components/ProductDetailModal';
+import { ProductPage } from './components/ProductPage';
 import { VirtualTryOnModal } from './components/VirtualTryOnModal';
 import { createCheckout, fetchAllShopifyProducts } from '../../services/shopifyService';
+
+// --- AI CONFIGURATION ---
+const AI_CONFIG = {
+    model: 'gemini-3-flash-preview',
+    systemInstruction: `You are the ONES4 Oracle, a high-fashion, futuristic AI shop assistant. 
+    - Speak in a sleek, sophisticated, slightly robotic cyberpunk tone.
+    - Keep answers concise and helpful.
+    - Use terms like 'Unit', 'Protocol', 'Deploy', and 'Sector'.
+    - Your goal is to help the user find the perfect tactical gear.`,
+};
 
 export interface CartItem extends ProductItem {
     quantity: number;
@@ -19,7 +29,7 @@ interface FilterState {
     tags: string[];
     colors: string[];
     minPrice: number;
-    maxPrice: number;
+    maxPrice: 500;
 }
 
 const SideMenu: React.FC<{ isOpen: boolean, onClose: () => void, onNavigate: any }> = ({ isOpen, onClose, onNavigate }) => {
@@ -27,23 +37,23 @@ const SideMenu: React.FC<{ isOpen: boolean, onClose: () => void, onNavigate: any
     return (
         <div className="fixed inset-0 z-[250] flex">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
-            <div className="relative w-[80vw] md:w-[60vw] lg:w-[400px] bg-[#0F1C2E]/95 backdrop-blur-3xl border-r border-white/10 h-full flex flex-col animate-in slide-in-from-left duration-500 shadow-2xl">
+            <div className="relative w-[80vw] md:w-[60vw] lg:w-[400px] bg-[#07163D]/95 backdrop-blur-3xl border-r border-[#00FFD1]/20 h-full flex flex-col animate-in slide-in-from-left duration-500 shadow-2xl">
                 <div className="p-10 flex flex-col gap-1">
                     <h1 className="text-3xl font-display font-black text-white tracking-[0.3em]">ONES4</h1>
-                    <span className="text-[10px] font-mono text-cyan-400 tracking-[0.5em] uppercase">MENU</span>
+                    <span className="text-[10px] font-mono text-[#00FFD1] tracking-[0.5em] uppercase">MENU</span>
                 </div>
                 <div className="flex-1 p-6 space-y-2">
                     {['HOME', 'SHOP', 'COLLECTIONS', 'ABOUT', 'ACCOUNT'].map((item) => (
-                        <button key={item} className="w-full text-left p-4 hover:bg-white/5 rounded-xl text-white/60 hover:text-white font-display font-bold uppercase tracking-widest transition-all">
+                        <button key={item} className="w-full text-left p-4 hover:bg-white/5 rounded-xl text-[#9AA4B2] hover:text-white font-display font-bold uppercase tracking-widest transition-all">
                             {item}
                         </button>
                     ))}
-                    <button onClick={() => { onNavigate('immersive'); onClose(); }} className="w-full text-left p-4 hover:bg-white/5 rounded-xl text-cyan-400 font-display font-bold uppercase tracking-widest transition-all border border-cyan-400/20 mt-8">
+                    <button onClick={() => { onNavigate('immersive'); onClose(); }} className="w-full text-left p-4 hover:bg-white/5 rounded-xl text-[#00FFD1] font-display font-bold uppercase tracking-widest transition-all border border-[#00FFD1]/20 mt-8">
                         Return to Orbit
                     </button>
                 </div>
                 <div className="p-10 border-t border-white/5 flex justify-between items-center opacity-30">
-                    <span className="text-[10px] font-mono uppercase tracking-widest">© 2025 DEPLOYMENT</span>
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-[#9AA4B2]">© 2025 DEPLOYMENT</span>
                 </div>
             </div>
         </div>
@@ -59,6 +69,7 @@ export const ShopMenu: React.FC<{ onNavigate: (view: 'immersive' | 'shop') => vo
     const [isTryOnOpen, setIsTryOnOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+    const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
     
     // Data State
     const [products, setProducts] = useState<ProductItem[]>([]);
@@ -113,11 +124,11 @@ export const ShopMenu: React.FC<{ onNavigate: (view: 'immersive' | 'shop') => vo
         });
     }, [products, activeCategory, searchQuery, filters]);
 
-    const addToCart = (item: ProductItem) => {
+    const addToCart = (item: ProductItem, quantity: number = 1) => {
         setCart(prev => {
             const existing = prev.find(i => i.id === item.id);
-            if (existing) return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
-            return [...prev, { ...item, quantity: 1 }];
+            if (existing) return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + quantity } : i);
+            return [...prev, { ...item, quantity }];
         });
         setIsCartOpen(true);
     };
@@ -147,7 +158,6 @@ export const ShopMenu: React.FC<{ onNavigate: (view: 'immersive' | 'shop') => vo
     const handleBuyNow = async (item: ProductItem) => {
         setIsCheckoutLoading(true);
         try {
-             // Direct checkout for single item
              const checkoutUrl = await createCheckout([{ variantId: item.id, quantity: 1 }]);
              if (checkoutUrl) {
                  window.location.href = checkoutUrl;
@@ -188,217 +198,280 @@ export const ShopMenu: React.FC<{ onNavigate: (view: 'immersive' | 'shop') => vo
         setIsAiLoading(true);
 
         try {
+            if (!process.env.API_KEY) {
+                throw new Error("API Key Missing");
+            }
             const productContext = products.slice(0, 5).map(p => `${p.name} ($${p.price})`).join(', ');
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const response = await ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
+                model: AI_CONFIG.model,
                 contents: `User shopping at ONES4. Query: ${userMsg}. Active Category: ${activeCategory}. Products available: ${productContext}.`,
-                config: { systemInstruction: "Speak like a futuristic high-fashion AI oracle. Sophisticated, minimalist, cryptic but helpful." }
+                config: { systemInstruction: AI_CONFIG.systemInstruction }
             });
             setAiMessages(prev => [...prev, { role: 'model', text: response.text || "Interface error." }]);
-        } catch (error) {
-            setAiMessages(prev => [...prev, { role: 'model', text: "Signal lost." }]);
+        } catch (error: any) {
+            console.error("AI Error:", error);
+            const errorMessage = error.message === "API Key Missing" 
+                ? "API Key not found. Please check your environment variables." 
+                : "Signal lost. The Oracle is offline.";
+            setAiMessages(prev => [...prev, { role: 'model', text: errorMessage }]);
         } finally {
             setIsAiLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#1E2A3A] via-[#2A1F2D] to-[#0A1423] text-white font-sans selection:bg-cyan-400 selection:text-black">
-            {/* Header */}
-            <header className="fixed top-0 left-0 right-0 z-[100] bg-[#1E2A3A]/90 backdrop-blur-xl border-b border-white/5 transition-all duration-300">
-                <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 md:h-24 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4 md:gap-8">
-                        <div className="flex items-center gap-2 md:gap-4">
-                            <button onClick={() => setIsMenuOpen(true)} className="p-2.5 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl text-white transition-all group border border-white/5 active:scale-95">
-                                <MenuIcon size={20} className="md:w-6 md:h-6 group-hover:text-cyan-400" />
-                            </button>
-                            <button onClick={() => onNavigate('immersive')} className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-[#1F2937] text-white font-display font-bold text-[10px] uppercase tracking-widest rounded-xl hover:bg-white hover:text-black transition-all border border-white/5">
-                                <Home size={14} />
-                                <span className="hidden md:inline">Orbit</span>
-                            </button>
-                        </div>
-                        <div className="flex flex-col cursor-pointer group" onClick={() => onNavigate('immersive')}>
-                            <h1 className="text-xl md:text-3xl font-display font-black tracking-[0.2em] md:tracking-[0.4em] group-hover:text-cyan-400 transition-colors">ONES4</h1>
-                            <div className="h-[2px] w-full bg-cyan-400 scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
-                        </div>
-                    </div>
+        <div className="min-h-screen font-sans selection:bg-[#00FFD1] selection:text-black bg-[#07163D] relative overflow-x-hidden">
+            
+            {/* ATMOSPHERIC BACKGROUND */}
+            <div className="fixed inset-0 pointer-events-none z-0">
+                {/* Top Center Glow (Cyan) */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80vw] h-[40vh] bg-[radial-gradient(circle,_rgba(0,255,209,0.12)_0%,_transparent_70%)] blur-3xl opacity-80" />
+                {/* Bottom Right Glow (Deep Blue/Purple) */}
+                <div className="absolute bottom-0 right-0 w-[60vw] h-[50vh] bg-[radial-gradient(circle,_rgba(2,25,89,0.3)_0%,_transparent_70%)] blur-3xl opacity-60" />
+                {/* Vignette */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_50%,_rgba(7,22,61,0.8)_100%)]" />
+                {/* Grain (Optional) */}
+                <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] brightness-150 contrast-150 mix-blend-overlay pointer-events-none" />
+            </div>
+
+            <div className="relative z-10">
+                {/* --- HEADER --- */}
+                <header className="fixed top-0 left-0 right-0 z-[100] bg-[#07163D]/80 backdrop-blur-xl border-b border-[#00FFD1]/10 transition-all duration-300">
                     
-                    {/* Right Actions */}
-                    <div className="flex items-center gap-2 md:gap-6">
-                        <div className="hidden lg:flex items-center bg-white/5 border border-white/10 rounded-2xl px-5 py-2.5 gap-3 group focus-within:border-cyan-400/50 transition-all w-64 md:w-80 relative">
-                            <Search size={16} className="text-white/20 group-focus-within:text-cyan-400" />
-                            <input 
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                type="text" 
-                                placeholder="SCAN DATABASE..." 
-                                className="bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest placeholder:text-white/20 w-full pr-8" 
-                            />
-                             <button onClick={handleVoiceSearch} className="absolute right-3 text-white/20 hover:text-cyan-400 transition-colors active:scale-90" title="Voice Search">
-                                <Mic size={16} />
-                            </button>
+                    {/* Mobile Search Overlay */}
+                    {isMobileSearchOpen && (
+                        <div className="absolute inset-0 z-50 bg-[#07163D] flex items-center px-4">
+                            <div className="w-full relative flex items-center gap-3 bg-[#021959] border border-[#00FFD1]/20 rounded-2xl px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-200 shadow-[0_0_20px_rgba(0,0,0,0.5)]">
+                                <Search size={18} className="text-[#00FFD1]" />
+                                <input 
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    type="text" 
+                                    placeholder="Search products..." 
+                                    className="flex-1 bg-transparent border-none outline-none text-sm font-bold text-white placeholder:text-[#9AA4B2]"
+                                    autoFocus
+                                />
+                                <button onClick={handleVoiceSearch} className="text-[#9AA4B2] hover:text-[#00FFD1] transition-colors active:scale-90">
+                                    <Mic size={18} />
+                                </button>
+                                <button onClick={() => setIsMobileSearchOpen(false)} className="ml-2 text-[#9AA4B2] hover:text-white">
+                                    <X size={20} />
+                                </button>
+                            </div>
                         </div>
+                    )}
+
+                    <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
                         
-                         {/* Mobile Search Toggle */}
-                         <button className="lg:hidden p-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 text-white active:scale-95">
-                            <Search size={18} />
-                         </button>
+                        {/* Left: Menu */}
+                        <button onClick={() => setIsMenuOpen(true)} className="flex flex-col items-center gap-1 group">
+                            <MenuIcon className="w-6 h-6 text-[#FFFFFF] group-hover:text-[#00FFD1] transition-colors" />
+                            <span className="text-[9px] font-bold uppercase text-[#9AA4B2] group-hover:text-white tracking-wider">Menu</span>
+                        </button>
 
-                        <div className="flex items-center gap-2 md:gap-4">
-                            <button onClick={() => setIsCartOpen(true)} className="relative p-2.5 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all group border border-white/5 active:scale-95 hover:border-cyan-400/30">
-                                <ShoppingBag size={20} className="md:w-6 md:h-6 group-hover:text-cyan-400" />
-                                {cart.length > 0 && (
-                                    <span className="absolute -top-1 -right-1 md:top-0 md:right-0 w-4 h-4 md:w-5 md:h-5 bg-cyan-400 text-black text-[9px] font-black rounded-full flex items-center justify-center border-2 border-[#050A18]">
-                                        {cart.reduce((sum, i) => sum + i.quantity, 0)}
-                                    </span>
-                                )}
+                        {/* Center: SHOP Title */}
+                        <h1 className="text-xl font-display font-black tracking-[0.2em] text-[#FFFFFF] drop-shadow-[0_0_10px_rgba(0,255,209,0.3)]">SHOP</h1>
+                        
+                        {/* Right: Actions */}
+                        <div className="flex items-center gap-5">
+                             <button 
+                                onClick={() => setIsMobileSearchOpen(true)}
+                                className="text-[#FFFFFF] hover:text-[#00FFD1] transition-colors relative group"
+                             >
+                                <Search size={22} className="drop-shadow-md" />
+                             </button>
+
+                            <button 
+                                onClick={() => setIsCartOpen(true)} 
+                                className="text-[#FFFFFF] hover:text-[#00FFD1] transition-colors relative group"
+                            >
+                                <ShoppingBag size={22} className="drop-shadow-md" />
+                                <span className={`absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 ${cart.length > 0 ? 'bg-[#00FFD1] text-[#07163D]' : 'bg-[#9AA4B2] text-[#07163D]'} text-[9px] font-black rounded-full flex items-center justify-center border-2 border-[#07163D]`}>
+                                    {cart.reduce((sum, i) => sum + i.quantity, 0)}
+                                </span>
                             </button>
                         </div>
-                    </div>
-                </div>
-            </header>
-
-            {/* Main Content */}
-            <main className="pt-32 md:pt-40 pb-24 max-w-7xl mx-auto px-4 md:px-10">
-                <header className="mb-12 text-center space-y-8">
-                    <div className="space-y-2">
-                        <h2 className="text-4xl md:text-6xl font-black tracking-widest text-white uppercase italic drop-shadow-[0_0_20px_rgba(6,182,212,0.3)]">
-                            CLOTHING
-                        </h2>
-                        <p className="text-[10px] font-black text-cyan-400 tracking-[0.5em] uppercase">Tactical_Precision_Apparel</p>
                     </div>
                 </header>
 
-                <div className="mb-10">
-                    <CategoryTabs activeCategory={activeCategory} onSelect={setActiveCategory} />
-                </div>
-
-                <div className="flex justify-between items-center mb-8 px-2">
-                    <span className="text-[10px] md:text-xs font-mono text-white/40 uppercase tracking-widest">
-                        Showing {filteredProducts.length} Units
-                    </span>
-                    <button onClick={() => setIsFiltersOpen(true)} className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-cyan-400 hover:text-white transition-colors">
-                        <SlidersHorizontal size={16} /> Filter
-                    </button>
-                </div>
-
-                {loading ? (
-                    <div className="flex flex-col items-center justify-center py-40">
-                        <Loader2 className="animate-spin text-cyan-400 mb-4" size={48} />
-                        <span className="text-[10px] font-mono tracking-[0.5em] uppercase text-white/50">ESTABLISHING DATALINK...</span>
-                    </div>
+                {/* --- CONTENT RENDER --- */}
+                {selectedItem ? (
+                     <ProductPage 
+                        product={selectedItem}
+                        onBack={() => setSelectedItem(null)}
+                        onAdd={(p, q) => addToCart(p, q)}
+                        onSelectProduct={setSelectedItem}
+                        allProducts={products}
+                        onOpenFilters={() => setIsFiltersOpen(true)}
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
+                        onOpenTryOn={() => setIsTryOnOpen(true)}
+                        onCheckout={handleBuyNow}
+                    />
                 ) : (
-                    <div className="grid grid-cols-2 gap-3 md:gap-8">
-                        {filteredProducts.map(product => (
-                            <ProductCard 
-                                key={product.id} 
-                                product={product} 
-                                onSelect={(p) => setSelectedItem(p)} 
-                                onAddToCart={addToCart} 
-                            />
-                        ))}
-                    </div>
-                )}
-            </main>
-
-            {/* Side Menu */}
-            <SideMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} onNavigate={onNavigate} />
-
-            {/* Product Modal */}
-            <ProductDetailModal 
-                item={selectedItem} 
-                isOpen={!!selectedItem && !isTryOnOpen} 
-                onClose={() => setSelectedItem(null)} 
-                onAddToCart={(p) => { addToCart(p); setSelectedItem(null); }}
-                onOpenTryOn={() => setIsTryOnOpen(true)}
-                onCheckout={(p) => handleBuyNow(p)}
-            />
-
-            {/* Virtual Try On Modal */}
-            <VirtualTryOnModal 
-                item={selectedItem} 
-                isOpen={isTryOnOpen} 
-                onClose={() => setIsTryOnOpen(false)} 
-                onAddToCart={(p) => { addToCart(p); setIsTryOnOpen(false); setSelectedItem(null); }}
-            />
-
-            {/* AI Oracle FAB */}
-            <div className={`fixed bottom-10 right-10 z-[200] transition-all duration-500 ${isAiOpen ? 'w-[90vw] md:w-96 h-[600px]' : 'w-16 h-16 md:w-20 md:h-20'}`}>
-                {isAiOpen ? (
-                    <div className="w-full h-full bg-[#072B75]/95 backdrop-blur-3xl border border-white/10 rounded-[3rem] shadow-2xl flex flex-col overflow-hidden">
-                        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-cyan-400/5">
-                            <div className="flex items-center gap-4">
-                                <Sparkles size={22} className="text-cyan-400" />
-                                <span className="text-xs font-black uppercase tracking-widest">Oracle Assistant</span>
+                    <main className="pt-20 pb-24 max-w-7xl mx-auto px-4">
+                        
+                        {/* Featured Header & Controls */}
+                        <div className="mb-6 space-y-5">
+                            <div className="flex items-center gap-2 px-1">
+                                <span className="text-xl drop-shadow-md">🔥</span>
+                                <h2 className="text-xl font-bold text-[#FFFFFF] tracking-tight drop-shadow-sm">Featured Picks</h2>
                             </div>
-                            <button onClick={() => setIsAiOpen(false)} className="text-white/20 hover:text-white"><X size={24} /></button>
-                        </div>
-                        <div className="flex-grow overflow-y-auto p-8 space-y-6 no-scrollbar">
-                            {aiMessages.map((m, i) => (
-                                <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-[85%] p-5 rounded-[2rem] text-sm leading-relaxed ${m.role === 'user' ? 'bg-cyan-400 text-black font-bold' : 'bg-white/5 border border-white/5 text-white/70'}`}>
-                                        {m.text}
-                                    </div>
-                                </div>
-                            ))}
-                            {isAiLoading && <div className="p-4 bg-white/5 rounded-full animate-pulse w-fit"><Loader2 className="animate-spin text-cyan-400" size={20} /></div>}
-                        </div>
-                        <div className="p-6 border-t border-white/5 flex gap-4">
-                            <input value={aiInput} onChange={(e) => setAiInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAiMessage()} type="text" placeholder="Consult..." className="flex-grow bg-white/5 rounded-2xl px-6 py-4 text-sm border border-white/5 outline-none focus:border-cyan-400/50 transition-all" />
-                            <button onClick={handleAiMessage} className="p-4 bg-cyan-400 text-black rounded-2xl hover:scale-105 transition-transform"><Send size={20} /></button>
-                        </div>
-                    </div>
-                ) : (
-                    <button onClick={() => setIsAiOpen(true)} className="w-full h-full bg-cyan-400 text-black rounded-[2rem] flex items-center justify-center shadow-[0_0_40px_rgba(6,182,212,0.5)] hover:scale-110 active:scale-95 transition-all">
-                        <Sparkles size={28} className="md:size-8" />
-                    </button>
-                )}
-            </div>
-
-            {/* Cart Sidebar */}
-            {isCartOpen && (
-                <div className="fixed inset-0 z-[300]">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsCartOpen(false)} />
-                    <div className="absolute top-0 right-0 h-full w-full max-w-lg bg-[#0A1423] border-l border-white/10 p-12 flex flex-col shadow-2xl animate-in slide-in-from-right duration-500">
-                        <div className="flex justify-between items-center mb-16">
-                            <h2 className="text-3xl md:text-4xl font-display font-black tracking-tight uppercase">Cart</h2>
-                            <button onClick={() => setIsCartOpen(false)} className="p-3 hover:bg-white/5 rounded-full"><X size={28} /></button>
-                        </div>
-                        <div className="flex-grow overflow-y-auto no-scrollbar space-y-8">
-                            {cart.length === 0 ? <p className="text-center opacity-20 uppercase tracking-[0.5em] py-20">No units deployed</p> : cart.map(item => (
-                                <div key={item.id} className="flex gap-4 md:gap-8 group">
-                                    <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl md:rounded-3xl overflow-hidden border border-white/10 shrink-0">
-                                        <img src={item.image} className="w-full h-full object-cover" />
-                                    </div>
-                                    <div className="flex-grow flex flex-col justify-between py-1">
-                                        <div><h4 className="text-sm md:text-lg font-bold uppercase tracking-widest leading-tight">{item.name}</h4><span className="text-cyan-400 text-sm md:text-lg font-black">${item.price}</span></div>
-                                        <div className="flex items-center gap-4 md:gap-6">
-                                            <button onClick={() => setCart(prev => prev.map(i => i.id === item.id ? {...i, quantity: Math.max(1, i.quantity - 1)} : i))} className="text-white/30 hover:text-white"><Minus size={16} /></button>
-                                            <span className="text-xs md:text-sm font-mono">{item.quantity}</span>
-                                            <button onClick={() => setCart(prev => prev.map(i => i.id === item.id ? {...i, quantity: i.quantity + 1} : i))} className="text-white/30 hover:text-white"><Plus size={16} /></button>
-                                        </div>
-                                    </div>
-                                    <button onClick={() => setCart(prev => prev.filter(i => i.id !== item.id))} className="text-white/10 hover:text-red-400 self-center"><Trash2 size={20} /></button>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="pt-8 md:pt-12 border-t border-white/5 space-y-6 md:space-y-8">
-                            <div className="flex justify-between items-end">
-                                <span className="text-[10px] font-mono text-white/30 uppercase tracking-[0.4em]">Final Valuation</span>
-                                <span className="text-2xl md:text-4xl font-black text-cyan-400">${cart.reduce((sum, i) => sum + (i.price * i.quantity), 0).toFixed(2)}</span>
+                            
+                            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 pl-1">
+                                 <button onClick={() => setIsFiltersOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-[#021959]/60 backdrop-blur-md border border-[#00FFD1]/20 rounded-full text-xs font-bold text-[#00FFD1] hover:bg-[#00FFD1]/10 hover:border-[#00FFD1]/50 transition-all whitespace-nowrap shadow-[0_0_15px_rgba(0,255,209,0.05)]">
+                                    <Filter size={14} /> Filter
+                                 </button>
+                                 <button className="flex items-center gap-2 px-4 py-2 bg-[#021959]/60 backdrop-blur-md border border-[#00FFD1]/20 rounded-full text-xs font-bold text-[#00FFD1] hover:bg-[#00FFD1]/10 hover:border-[#00FFD1]/50 transition-all whitespace-nowrap shadow-[0_0_15px_rgba(0,255,209,0.05)]">
+                                    <ArrowUpDown size={14} /> Sort
+                                 </button>
+                                 <div className="w-[1px] h-6 bg-white/10 mx-1 self-center" />
+                                 <CategoryTabs activeCategory={activeCategory} onSelect={setActiveCategory} />
                             </div>
-                            <button 
-                                onClick={handleCartCheckout}
-                                disabled={isCheckoutLoading || cart.length === 0}
-                                className={`w-full py-5 md:py-6 bg-cyan-400 text-black font-black uppercase tracking-[0.8em] text-[10px] rounded-[1.5rem] md:rounded-[2rem] hover:bg-white transition-all shadow-[0_0_50px_rgba(6,182,212,0.3)] flex items-center justify-center gap-3 ${isCheckoutLoading ? 'opacity-70 cursor-wait' : ''}`}
-                            >
-                                {isCheckoutLoading ? <Loader2 className="animate-spin" size={16} /> : 'Finalize Order'}
+                        </div>
+
+                        {/* Product Grid */}
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-40">
+                                <Loader2 className="animate-spin text-[#00FFD1] mb-4" size={32} />
+                                <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-[#9AA4B2]">LOADING ASSETS...</span>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 gap-4">
+                                {filteredProducts.map(product => (
+                                    <ProductCard 
+                                        key={product.id} 
+                                        product={product} 
+                                        onSelect={(p) => setSelectedItem(p)} 
+                                        onAddToCart={(p) => addToCart(p, 1)} 
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </main>
+                )}
+
+                {/* --- BOTTOM NAVIGATION --- */}
+                {!selectedItem && (
+                    <nav className="fixed bottom-0 left-0 right-0 bg-[#07163D]/80 backdrop-blur-xl border-t border-[#00FFD1]/10 pb-safe z-[90]">
+                        <div className="flex justify-around items-center h-16">
+                            <button onClick={() => onNavigate('immersive')} className="flex flex-col items-center gap-1 p-2 text-[#FFFFFF] hover:text-[#00FFD1] active:scale-95 transition-all opacity-80 hover:opacity-100">
+                                <Home size={22} />
+                                <span className="text-[9px] font-bold uppercase tracking-wide">Home</span>
+                            </button>
+                            <button onClick={() => setIsMobileSearchOpen(true)} className="flex flex-col items-center gap-1 p-2 text-[#FFFFFF] hover:text-[#00FFD1] active:scale-95 transition-all opacity-80 hover:opacity-100">
+                                <Search size={22} />
+                                <span className="text-[9px] font-bold uppercase tracking-wide">Search</span>
+                            </button>
+                            <button onClick={() => setIsCartOpen(true)} className="flex flex-col items-center gap-1 p-2 text-[#00FFD1] hover:text-white active:scale-95 transition-all relative">
+                                <div className="relative">
+                                    <ShoppingBag size={22} />
+                                    {cart.length > 0 && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#00FFD1] rounded-full animate-pulse shadow-[0_0_10px_#00FFD1]" />}
+                                </div>
+                                <span className="text-[9px] font-bold uppercase tracking-wide">Cart</span>
+                            </button>
+                            <button className="flex flex-col items-center gap-1 p-2 text-[#FFFFFF] hover:text-[#00FFD1] active:scale-95 transition-all opacity-80 hover:opacity-100">
+                                <User size={22} />
+                                <span className="text-[9px] font-bold uppercase tracking-wide">Profile</span>
                             </button>
                         </div>
+                    </nav>
+                )}
+
+                {/* Side Menu */}
+                <SideMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} onNavigate={onNavigate} />
+
+                {/* Virtual Try On Modal */}
+                <VirtualTryOnModal 
+                    item={selectedItem} 
+                    isOpen={isTryOnOpen} 
+                    onClose={() => setIsTryOnOpen(false)} 
+                    onAddToCart={(p) => { addToCart(p, 1); setIsTryOnOpen(false); setSelectedItem(null); }}
+                />
+
+                {/* AI Oracle FAB */}
+                {!selectedItem && (
+                     <div className={`fixed bottom-20 right-4 z-[80] transition-all duration-500 ${isAiOpen ? 'w-[90vw] md:w-96 h-[500px]' : 'w-12 h-12'}`}>
+                        {isAiOpen ? (
+                            <div className="w-full h-full bg-[#07163D]/95 backdrop-blur-3xl border border-[#00FFD1]/20 rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden">
+                                <div className="p-4 border-b border-white/5 flex justify-between items-center bg-[#021959]">
+                                    <div className="flex items-center gap-2">
+                                        <Sparkles size={16} className="text-[#00FFD1]" />
+                                        <span className="text-xs font-black uppercase tracking-widest text-white">Oracle AI</span>
+                                    </div>
+                                    <button onClick={() => setIsAiOpen(false)} className="text-white/40 hover:text-white"><X size={18} /></button>
+                                </div>
+                                <div className="flex-grow overflow-y-auto p-4 space-y-4 no-scrollbar">
+                                    {aiMessages.map((m, i) => (
+                                        <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                            <div className={`max-w-[85%] p-3 rounded-2xl text-xs leading-relaxed ${m.role === 'user' ? 'bg-[#00FFD1] text-black font-bold' : 'bg-[#021959] border border-white/5 text-[#9AA4B2]'}`}>
+                                                {m.text}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {isAiLoading && <div className="p-2 bg-white/5 rounded-full animate-pulse w-fit"><Loader2 className="animate-spin text-[#00FFD1]" size={16} /></div>}
+                                </div>
+                                <div className="p-4 border-t border-white/5 flex gap-2 bg-[#07163D]">
+                                    <input value={aiInput} onChange={(e) => setAiInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAiMessage()} type="text" placeholder="Ask Oracle..." className="flex-grow bg-[#021959] rounded-xl px-4 py-3 text-xs border border-white/5 outline-none focus:border-[#00FFD1]/50 transition-all text-white placeholder:text-white/20" />
+                                    <button onClick={handleAiMessage} className="p-3 bg-[#00FFD1] text-black rounded-xl hover:scale-105 transition-transform"><Send size={16} /></button>
+                                </div>
+                            </div>
+                        ) : (
+                            <button onClick={() => setIsAiOpen(true)} className="w-full h-full bg-[#00FFD1] text-black rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,255,209,0.3)] hover:scale-110 active:scale-95 transition-all">
+                                <Sparkles size={20} />
+                            </button>
+                        )}
                     </div>
-                </div>
-            )}
+                )}
+
+                {/* Cart Sidebar */}
+                {isCartOpen && (
+                    <div className="fixed inset-0 z-[300]">
+                        <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsCartOpen(false)} />
+                        <div className="absolute top-0 right-0 h-full w-full max-w-lg bg-[#07163D] border-l border-[#00FFD1]/10 p-8 flex flex-col shadow-2xl animate-in slide-in-from-right duration-500">
+                            <div className="flex justify-between items-center mb-10">
+                                <h2 className="text-2xl font-display font-black tracking-tight uppercase text-white">Your Cart</h2>
+                                <button onClick={() => setIsCartOpen(false)} className="p-2 hover:bg-white/5 rounded-full text-[#9AA4B2] hover:text-white"><X size={24} /></button>
+                            </div>
+                            <div className="flex-grow overflow-y-auto no-scrollbar space-y-6">
+                                {cart.length === 0 ? <p className="text-center text-[#9AA4B2] opacity-50 uppercase tracking-widest py-20 text-xs">Cart Empty</p> : cart.map(item => (
+                                    <div key={item.id} className="flex gap-4 group">
+                                        <div className="w-20 h-20 rounded-2xl overflow-hidden border border-white/10 shrink-0 bg-[#021959]">
+                                            <img src={item.image} className="w-full h-full object-cover" />
+                                        </div>
+                                        <div className="flex-grow flex flex-col justify-between py-1">
+                                            <div>
+                                                <h4 className="text-sm font-bold uppercase tracking-wide leading-tight text-white mb-1">{item.name}</h4>
+                                                <span className="text-[#00FFD1] text-sm font-black">${item.price}</span>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <button onClick={() => setCart(prev => prev.map(i => i.id === item.id ? {...i, quantity: Math.max(1, i.quantity - 1)} : i))} className="text-[#9AA4B2] hover:text-white"><Minus size={14} /></button>
+                                                <span className="text-xs font-mono text-white">{item.quantity}</span>
+                                                <button onClick={() => setCart(prev => prev.map(i => i.id === item.id ? {...i, quantity: i.quantity + 1} : i))} className="text-[#9AA4B2] hover:text-white"><Plus size={14} /></button>
+                                            </div>
+                                        </div>
+                                        <button onClick={() => setCart(prev => prev.filter(i => i.id !== item.id))} className="text-[#9AA4B2]/50 hover:text-red-400 self-center"><Trash2 size={18} /></button>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="pt-8 border-t border-white/5 space-y-6">
+                                <div className="flex justify-between items-end">
+                                    <span className="text-[10px] font-mono text-[#9AA4B2] uppercase tracking-widest">Total</span>
+                                    <span className="text-3xl font-black text-[#00FFD1]">${cart.reduce((sum, i) => sum + (i.price * i.quantity), 0).toFixed(2)}</span>
+                                </div>
+                                <button 
+                                    onClick={handleCartCheckout}
+                                    disabled={isCheckoutLoading || cart.length === 0}
+                                    className={`w-full py-5 bg-[#00FFD1] text-[#07163D] font-black uppercase tracking-[0.2em] text-xs rounded-2xl hover:bg-white transition-all shadow-[0_0_30px_rgba(0,255,209,0.3)] flex items-center justify-center gap-3 ${isCheckoutLoading ? 'opacity-70 cursor-wait' : ''}`}
+                                >
+                                    {isCheckoutLoading ? <Loader2 className="animate-spin" size={16} /> : 'Checkout'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
